@@ -96,8 +96,7 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
       ComputePModel(cModels[cModel], pModel[n], cModels[cModel]->pModelIdx,
       cModels[cModel]->alphaDen);
       ComputeWeightedFreqs(cModelWeight[n], pModel[n], PT);
-      if(cModels[cModel]->edits != 0){
-        // SUBSTITUTIONS HANDLING:
+      if(cModels[cModel]->edits != 0){ // SUBSTITUTIONAL HANDLING
         ++n;
         cModels[cModel]->SUBS.idx = GetPModelIdxCorr(cModels[cModel]->SUBS.seq
         ->buf+cModels[cModel]->SUBS.seq->idx-1, cModels[cModel], cModels[cModel]

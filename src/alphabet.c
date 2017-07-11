@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include "alphabet.h"
 #include "mem.h"
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -33,10 +34,10 @@ void LoadAlphabet(ALPHABET *A, FILE *F){
   for(x = 0 ; x < ALPHABET_MAX_SIZE ; x++){
     if(A->mask[x]){
       A->toChars[A->cardinality] = x;
-      seq->revMap[x] = A->cardinality++;
+      A->revMap[x] = A->cardinality++;
       }      
     else 
-      seq->revMap[x] = INVALID_SYMBOL;
+      A->revMap[x] = INVALID_SYMBOL;
     }
 
   rewind(F);

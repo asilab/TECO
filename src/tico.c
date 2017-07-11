@@ -26,7 +26,7 @@ refNModels, INF *I){
   FILE        *Writter = Fopen(name, "w");
   uint32_t    n, k, cModel, totModels, idxPos;
   int32_t     idx = 0;
-  uint64_t    compressed = 0, nSymbols = 0, nBases = 0;
+  uint64_t    compressed = 0, nSymbols = 0;
   double      *cModelWeight, cModelTotalWeight = 0;
   uint8_t     *readerBuffer, *symbolBuffer, sym, irSym, *pos, type = 0, 
               header = 1, line = 0, dna = 0;
@@ -48,9 +48,13 @@ refNModels, INF *I){
     }
   #endif
   
-  nBases = NDNASyminFile (Reader);
   _bytes_output = 0;
   nSymbols      = NBytesInFile(Reader);
+
+  // BUILD ALPHABET
+
+
+
   
   // EXTRA MODELS DERIVED FROM EDITS
   totModels = P->nModels;
@@ -83,8 +87,8 @@ refNModels, INF *I){
 
   if(P->verbose){
     fprintf(stdout, "Done!\n");
-    fprintf(stdout, "Compressing target sequence %d [bases: %"PRIu64"] ...\n", 
-    id + 1, nBases);
+    fprintf(stdout, "Compressing target sequence %d [%"PRIu64"] ...\n", 
+    id + 1, nSymbols);
     }
 
   startoutputtingbits();
@@ -92,7 +96,7 @@ refNModels, INF *I){
 
   WriteNBits(WATERMARK,                32, Writter);
   WriteNBits(P->checksum,              46, Writter);
-  WriteNBits(nBases,                   46, Writter);
+  WriteNBits(nSymbols,                 46, Writter);
   WriteNBits((int) (P->gamma * 65536), 32, Writter);
   WriteNBits(P->col,                   32, Writter);
   WriteNBits(P->nModels,               16, Writter);
@@ -115,38 +119,7 @@ refNModels, INF *I){
 
       sym = readerBuffer[idxPos];
 
-
-/*    if(type == 1){  // IS A FAST[A] FILE
-        if(sym == '>'){ header = 1; continue; }
-        if(sym == '\n' && header == 1){ header = 0; continue; }
-        if(sym == '\n') continue;
-        if(header == 1) continue;
-        }
-      else if(type == 2){ // IS A FAST[Q] FILE
-        switch(line){
-          case 0: if(sym == '\n'){ line = 1; dna = 1; } break;
-          case 1: if(sym == '\n'){ line = 2; dna = 0; } break;
-          case 2: if(sym == '\n'){ line = 3; dna = 0; } break;
-          case 3: if(sym == '\n'){ line = 0; dna = 0; } break;
-          }
-        if(dna == 0 || sym == '\n') continue;
-        }
-
-      // REMOVE SPECIAL SYMBOLS [WINDOWS TXT ISSUES]
-      if(sym < 65 || sym > 122) continue; 
-
-      // FINAL FILTERING DNA CONTENT
-      if(sym != 'A' && sym != 'C' && sym != 'G' && sym != 'T'){
-        #ifdef ESTIMATE
-        if(P->estim != 0)
-          fprintf(IAE, "0\n");
-        #endif
-        continue;
-        }
-*/
-
-
-      symbolBuffer[idx] = sym = DNASymToNum(sym);
+      symbolBuffer[idx] = sym = DNASymToNum(sym); //XXX
       memset((void *)PT->freqs, 0, ALPHABET_SIZE * sizeof(double));
 
       n = 0;

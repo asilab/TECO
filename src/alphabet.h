@@ -20,9 +20,9 @@ ALPHABET;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void    CreateAlphabet   (void);
-void    LoadAlphabet     (ALPHABET *, FILE *);
-void    RemoveAlphabet   (ALPHABET *);
+ALPHABET   *CreateAlphabet   (void);
+void       LoadAlphabet      (ALPHABET *, FILE *);
+void       RemoveAlphabet    (ALPHABET *);
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
