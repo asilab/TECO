@@ -6,7 +6,6 @@
 void ModelsExplanation(void);
 void PrintMenu(void);
 void PrintVersion(void);
-void PrintExamples(void);
 
 #endif
 
