@@ -10,7 +10,7 @@
 
 typedef struct{
   uint8_t  *buf;
-  uint32_t idx;
+  int32_t  idx;
   uint32_t size;
   uint32_t guard;
   }

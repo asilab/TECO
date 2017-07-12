@@ -82,6 +82,7 @@ typedef struct{
   U64        pModelIdxIR;
   // EDITS HANDLING:
   U32        edits;
+  U32        nSym;
   Correct    SUBS;
   }
 CModel;
