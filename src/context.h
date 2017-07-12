@@ -30,6 +30,7 @@ typedef U16  HCC;             // Size of context counters for hash tables
 typedef U8   ENTMAX;                // Entry size (nKeys for each hIndex)
 typedef HCC  HCCounters[4];
 
+/*
 typedef struct{
   #if defined(PREC32B)
   U32        key;                         // The key stored in this entry
@@ -47,6 +48,21 @@ typedef struct{
   Entry      **entries;              // The heads of the hash table lists
   uint32_t   maxC;
   uint32_t   maxH;
+  }
+HashTable;
+*/
+
+typedef struct{
+  uint32_t  key;              //The key stored in this entry 
+  uint8_t   *counters;        //The context counters 
+  }
+Entry;
+
+typedef struct{
+  uint32_t  size;             //Size of the hash table
+  uint8_t   *entrySize;       //Number of keys in this entry
+  Entry     **entries;        //The heads of the hash table lists
+  uint8_t   **zeroCounters;  
   }
 HashTable;
 
@@ -100,22 +116,20 @@ FloatPModel;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-int32_t         BestId               (uint32_t *, uint32_t);
-int32_t         BestId2              (uint32_t *, uint32_t);
+int32_t         BestId               (uint32_t *, uint32_t, uint32_t);
 void            HitSUBS              (CModel *);
 void            FailSUBS             (CModel *);
 void            FreeCModel           (CModel *);
 void            GetPModelIdx         (U8 *, CModel *);
-U8              GetPModelIdxIR       (U8 *, CModel *);
 uint64_t        GetPModelIdxCorr     (U8 *, CModel *, uint64_t);
 void            CorrectCModelSUBS    (CModel *, PModel *, uint8_t);
 PModel          *CreatePModel        (U32);
 FloatPModel     *CreateFloatPModel   (U32);
 void            ResetCModelIdx       (CModel *);
 void            UpdateCModelCounter  (CModel *, U32, U64);
-CModel          *CreateCModel        (U32, U32, U32, U8, U32, U32, U32);
+CModel          *CreateCModel        (U32, U32, U32, U8, U32, U32, U32, U32);
 void            ComputePModel        (CModel *, PModel *, uint64_t, uint32_t);
-void            ComputeWeightedFreqs (double, PModel *, FloatPModel *);
+void            ComputeWeightedFreqs (double, PModel *, FloatPModel *, uint32_t);
 double          PModelSymbolNats     (PModel *, U32);
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

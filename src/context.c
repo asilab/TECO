@@ -34,18 +34,16 @@ static uint64_t ZHASH(uint64_t z){
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-static void InitHashTable(CModel *M, U32 c){ 
-  uint32_t k;
-  M->hTable.maxC    = c;
-  M->hTable.index   = (ENTMAX *) Calloc(HASH_SIZE, sizeof(ENTMAX));
-  M->hTable.entries = (Entry **) Calloc(HASH_SIZE, sizeof(Entry *));
-  for(k = 0 ; k < HASH_SIZE ; ++k)
-    M->hTable.entries[k] = (Entry *) Calloc(M->hTable.maxC, sizeof(Entry));
+/*
+static void InitHashTable(CModel *M){ 
+  M->hTable.entries      = (Entry   **) Calloc(M->hTable.size, sizeof(Entry *));
+  M->hTable.entrySize    = (uint8_t  *) Calloc(M->hTable.size, sizeof(uint8_t));
+  M->hTable.zeroCounters = (uint8_t **) Calloc(M->nSym, sizeof(uint8_t *));
   }
-
+*/
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
+/*
 void FreeCModel(CModel *M){
   U32 k;
   if(M->mode == HASH_TABLE_MODE){
@@ -58,15 +56,16 @@ void FreeCModel(CModel *M){
     Free(M->array.counters);
   Free(M);
   }
+*/
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 static void InitArray(CModel *M){
-  M->array.counters = (ACC *) Calloc(M->nPModels<<2, sizeof(ACC));
+  M->array.counters = (ACC *) Calloc(M->nPModels*M->nSym, sizeof(ACC));
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+/*
 static void InsertKey(HashTable *H, U32 hi, U64 idx, U8 s){
   if(++H->index[hi] == H->maxC)
     H->index[hi] = 0;
@@ -80,18 +79,18 @@ static void InsertKey(HashTable *H, U32 hi, U64 idx, U8 s){
   #endif  
   H->entries[hi][H->index[hi]].counters = (0x01<<(s<<2));
   }
-
+*/
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+/*
 void GetFreqsFromHCC(HCC c, uint32_t a, PModel *P){
    P->sum  = (P->freqs[0] = 1 + a * ( c &  0x0f));
    P->sum += (P->freqs[1] = 1 + a * ((c & (0x0f<<4))>>4));
    P->sum += (P->freqs[2] = 1 + a * ((c & (0x0f<<8))>>8));
    P->sum += (P->freqs[3] = 1 + a * ((c & (0x0f<<12))>>12));
    }
-
+*/
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
+/*
 void GetHCCounters(HashTable *H, U64 key, PModel *P, uint32_t a){
   U32 n, hIndex = key % HASH_SIZE;
   #if defined(PREC32B)
@@ -135,7 +134,7 @@ void GetHCCounters(HashTable *H, U64 key, PModel *P, uint32_t a){
   P->sum      = 4; 
   return;
   }
-
+*/
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 PModel *CreatePModel(U32 n){
@@ -168,6 +167,7 @@ void UpdateCModelCounter(CModel *M, U32 sym, U64 im){
   U64 idx = im;
 
   if(M->mode == HASH_TABLE_MODE){
+/*
     U16 counter, sc;
     U32 s, hIndex = (idx = ZHASH(idx)) % HASH_SIZE;
     #if defined(PREC32B)
@@ -197,14 +197,13 @@ void UpdateCModelCounter(CModel *M, U32 sym, U64 im){
         }
       }
     InsertKey(&M->hTable, hIndex, b, sym); // KEY NOT FOUND: WRITE ON OLDEST
+*/
     }
   else{
-    AC = &M->array.counters[idx << 2];
+    AC = &M->array.counters[idx * M->nSym];
     if(++AC[sym] == M->maxCount){    
-      AC[0] >>= 1;
-      AC[1] >>= 1;
-      AC[2] >>= 1;
-      AC[3] >>= 1;
+      for(n = 0 ; n < M->nSym ; ++n)
+        AC[n] /= 2;
       }
     }
   }
@@ -212,7 +211,7 @@ void UpdateCModelCounter(CModel *M, U32 sym, U64 im){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 CModel *CreateCModel(U32 ctx, U32 aDen, U32 ir, U8 ref, U32 col, U32 edits, 
-U32 eDen){
+U32 eDen, U32 nSym){
   CModel *M = (CModel *) Calloc(1, sizeof(CModel));
   U64    prod = 1, *mult;
   U32    n;
@@ -223,8 +222,9 @@ U32 eDen){
     exit(1);
     }
 
+  M->nSym        = nSym;
   mult           = (U64 *) Calloc(ctx, sizeof(U64));
-  M->nPModels    = (U64) pow(ALPHABET_SIZE, ctx);
+  M->nPModels    = (U64) pow(M->nSym, ctx);
   M->ctx         = ctx;
   M->alphaDen    = aDen;
   M->edits       = edits;
@@ -233,26 +233,27 @@ U32 eDen){
   M->ir          = ir  == 0 ? 0 : 1;
   M->ref         = ref == 0 ? 0 : 1;
 
+/*
   if(ctx >= HASH_TABLE_BEGIN_CTX){
     M->mode     = HASH_TABLE_MODE;
     M->maxCount = DEFAULT_MAX_COUNT >> 8;
     InitHashTable(M, col);
     }
   else{
+*/
     M->mode     = ARRAY_MODE;
     M->maxCount = DEFAULT_MAX_COUNT;
     InitArray(M);
-    }
+//    }
 
   for(n = 0 ; n < M->ctx ; ++n){
     mult[n] = prod;
-    prod <<= 2;
+    prod *= M->nSym;
     }
 
   M->multiplier = mult[M->ctx-1];
 
   if(edits != 0){
-    // SUBSTITUTIONS
     M->SUBS.seq       = CreateCBuffer(BUFFER_SIZE, BGUARD);
     M->SUBS.in        = 0;
     M->SUBS.idx       = 0;
@@ -267,31 +268,17 @@ U32 eDen){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-int32_t BestId(uint32_t *f, uint32_t sum){
-  if(sum == 4) return -2; // ZERO COUNTERS
+int32_t BestId(uint32_t *f, uint32_t sum, uint32_t nSym){
+  if(sum == nSym) return -2; // ZERO COUNTERS
 
   uint32_t x, best = 0, max = f[0];
-  for(x = 1 ; x < 4 ; ++x)
+  for(x = 1 ; x < nSym ; ++x)
     if(f[x] > max){
       max = f[x];
       best = x;
       }
 
-  for(x = 0 ; x < 4 ; ++x) if(best != x && max == f[x]) return -1;
-
-  return best;
-  }
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-int32_t BestId2(uint32_t *f, uint32_t sum){
-
-  uint32_t x, best = 0, max = f[0];
-  for(x = 1 ; x < 4 ; ++x)
-    if(f[x] > max){
-      max = f[x];
-      best = x;
-      }
+  for(x = 0 ; x < nSym ; ++x) if(best != x && max == f[x]) return -1;
 
   return best;
   }
@@ -305,25 +292,17 @@ void ResetCModelIdx(CModel *M){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-U8 GetPModelIdxIR(U8 *p, CModel *M){
-  M->pModelIdxIR = (M->pModelIdxIR>>2)+GetCompNum(*p)*M->multiplier;
-  return GetCompNum(*(p-M->ctx));
-  }
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 void GetPModelIdx(U8 *p, CModel *M){
-  M->pModelIdx = ((M->pModelIdx-*(p-M->ctx)*M->multiplier)<<2)+*p;
+  M->pModelIdx = ((M->pModelIdx-*(p-M->ctx)*M->multiplier)*M->nSym)+*p;
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 uint64_t GetPModelIdxCorr(U8 *p, CModel *M, uint64_t idx){
-  return (((idx-*(p-M->ctx)*M->multiplier)<<2)+*p);
+  return (((idx-*(p-M->ctx)*M->multiplier)*M->nSym)+*p);
   }
  
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// SUBS ======================================================================
 
 void FailSUBS(CModel *M){
   uint32_t x, fails = 0;
@@ -345,7 +324,7 @@ void HitSUBS(CModel *M){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 void CorrectCModelSUBS(CModel *M, PModel *P, uint8_t sym){
-  int32_t best = BestId(P->freqs, P->sum);
+  int32_t best = BestId(P->freqs, P->sum, M->nSym);
   switch(best){
     case -2:  // IT IS A ZERO COUNTER [NOT SEEN BEFORE]
       if(M->SUBS.in != 0)
@@ -375,17 +354,20 @@ void CorrectCModelSUBS(CModel *M, PModel *P, uint8_t sym){
 
 void ComputePModel(CModel *M, PModel *P, uint64_t idx, uint32_t aDen){
   ACC *ac;
+  uint32_t x;
   switch(M->mode){
+/*
     case HASH_TABLE_MODE:
       GetHCCounters(&M->hTable, ZHASH(idx), P, aDen);
     break;
+*/
     case ARRAY_MODE:
-      ac = &M->array.counters[idx<<2];
-      P->freqs[0] = 1 + aDen * ac[0];
-      P->freqs[1] = 1 + aDen * ac[1];
-      P->freqs[2] = 1 + aDen * ac[2];
-      P->freqs[3] = 1 + aDen * ac[3];
-      P->sum = P->freqs[0] + P->freqs[1] + P->freqs[2] + P->freqs[3];
+      ac = &M->array.counters[idx*M->nSym];
+      P->sum = 0;
+      for(x = 0 ; x < M->nSym ; ++x){
+        P->freqs[x] = 1 + aDen * ac[x];
+        P->sum += P->freqs[x];
+        }
     break;
     default:
     fprintf(stderr, "Error: not implemented!\n");
@@ -395,12 +377,11 @@ void ComputePModel(CModel *M, PModel *P, uint64_t idx, uint32_t aDen){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void ComputeWeightedFreqs(double w, PModel *P, FloatPModel *PT){
+void ComputeWeightedFreqs(double w, PModel *P, FloatPModel *PT, uint32_t nSym){
+  uint32_t x;
   double f = w / P->sum;
-  PT->freqs[0] += (double) P->freqs[0] * f;
-  PT->freqs[1] += (double) P->freqs[1] * f;
-  PT->freqs[2] += (double) P->freqs[2] * f;
-  PT->freqs[3] += (double) P->freqs[3] * f;
+  for(x = 0 ; x < nSym ; ++x)
+    PT->freqs[x] += (double) P->freqs[x] * f;
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

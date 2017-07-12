@@ -83,8 +83,8 @@ refNModels, INF *I){
   for(n = 0 ; n < P->nModels ; ++n){
     if(P->model[n].type == TARGET){
       cModels[n] = CreateCModel(P->model[n].ctx, P->model[n].den, 
-      P->model[n].ir, TARGET, P->col, P->model[n].edits, P->model[n].eDen);
-      cModels[n]->nSym = AL->cardinality;
+      P->model[n].ir, TARGET, P->col, P->model[n].edits, P->model[n].eDen,
+      AL->cardinality);
       }
     }
 
@@ -100,7 +100,6 @@ refNModels, INF *I){
   WriteNBits(WATERMARK,                32, Writter);
   WriteNBits(P->checksum,              46, Writter);
   WriteNBits(size,                     46, Writter);
-
   WriteNBits(AL->cardinality,          16, Writter);
   for(x = 0 ; x < AL->cardinality ; ++x)
     WriteNBits(AL->toChars[x],          8, Writter);
@@ -134,14 +133,14 @@ refNModels, INF *I){
         CModel *CM = cModels[cModel];
         GetPModelIdx(pos, CM);
         ComputePModel(CM, pModel[n], CM->pModelIdx, CM->alphaDen);
-        ComputeWeightedFreqs(cModelWeight[n], pModel[n], PT);
+        ComputeWeightedFreqs(cModelWeight[n], pModel[n], PT, CM->nSym);
         if(CM->edits != 0){
           ++n;
           CM->SUBS.seq->buf[CM->SUBS.seq->idx] = sym;
           CM->SUBS.idx = GetPModelIdxCorr(CM->SUBS.seq->buf+
           CM->SUBS.seq->idx-1, CM, CM->SUBS.idx);
           ComputePModel(CM, pModel[n], CM->SUBS.idx, CM->SUBS.eDen);
-          ComputeWeightedFreqs(cModelWeight[n], pModel[n], PT);
+          ComputeWeightedFreqs(cModelWeight[n], pModel[n], PT, CM->nSym);
           }
         ++n;
         }
@@ -198,11 +197,11 @@ refNModels, INF *I){
   Free(MX);
   Free(name);
   Free(cModelWeight);
-  for(n = 0 ; n < P->nModels ; ++n)
-    if(P->model[n].type == REFERENCE)
-      ResetCModelIdx(cModels[n]);
-    else
-      FreeCModel(cModels[n]);
+//  for(n = 0 ; n < P->nModels ; ++n)
+//    if(P->model[n].type == REFERENCE)
+//      ResetCModelIdx(cModels[n]);
+//    else
+//      FreeCModel(cModels[n]);
   for(n = 0 ; n < totModels ; ++n){
     Free(pModel[n]->freqs);
     Free(pModel[n]);
@@ -248,7 +247,7 @@ CModel **LoadReference(Parameters *P)
   for(n = 0 ; n < P->nModels ; ++n)
     if(P->model[n].type == REFERENCE)
       cModels[n] = CreateCModel(P->model[n].ctx, P->model[n].den, 
-      P->model[n].ir, REFERENCE, P->col, P->model[n].edits, P->model[n].eDen);
+      P->model[n].ir, REFERENCE, P->col, P->model[n].edits, P->model[n].eDen, 4);
 
   sym = fgetc(Reader);
   switch(sym){ 
@@ -296,10 +295,6 @@ CModel **LoadReference(Parameters *P)
         if(P->model[n].type == REFERENCE){
           GetPModelIdx(symbolBuffer+idx-1, cModels[n]);
           UpdateCModelCounter(cModels[n], sym, cModels[n]->pModelIdx);
-          if(cModels[n]->ir == 1){                         // Inverted repeats
-            irSym = GetPModelIdxIR(symbolBuffer+idx, cModels[n]);
-            UpdateCModelCounter(cModels[n], irSym, cModels[n]->pModelIdxIR);
-            }
           }
 
       if(++idx == BUFFER_SIZE){
