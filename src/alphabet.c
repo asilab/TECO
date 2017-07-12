@@ -48,11 +48,14 @@ void LoadAlphabet(ALPHABET *A, FILE *F){
 //
 void PrintAlphabet(ALPHABET *A){
   int x;
-  printf("Alphabet size: %u\n", A->cardinality);
-  printf("Alphabet: ");
+  fprintf(stderr, "Alphabet size    : %u\n", A->cardinality);
+  fprintf(stderr, "Alphabet         : ");
   for(x = 0 ; x < A->cardinality ; ++x)
-    printf("%c", A->toChars[x]);
-  printf("\n");
+    fprintf(stderr, "%c", A->toChars[x]);
+  fprintf(stderr, "\nAlphabet numbers : ");
+  for(x = 0 ; x < A->cardinality ; ++x)
+    fprintf(stderr, "%d,", (int) A->toChars[x]);
+  fprintf(stderr, "\n");
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

@@ -55,6 +55,7 @@ refNModels, INF *I){
   // BUILD ALPHABET
   ALPHABET *AL = CreateAlphabet();
   LoadAlphabet(AL, Reader);
+  PrintAlphabet(AL);
   
   // EXTRA MODELS DERIVED FROM EDITS
   totModels = P->nModels;
