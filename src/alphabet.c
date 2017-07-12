@@ -44,6 +44,18 @@ void LoadAlphabet(ALPHABET *A, FILE *F){
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// PRINT ALPHABET
+//
+void PrintAlphabet(ALPHABET *A){
+  int x;
+  printf("Alphabet size: %u\n", A->cardinality);
+  printf("Alphabet: ");
+  for(x = 0 ; x < A->cardinality ; ++x)
+    printf("%c", A->toChars[x]);
+  printf("\n");
+  }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // REMOVE ALPHABET
 //
 void RemoveAlphabet(ALPHABET *A){

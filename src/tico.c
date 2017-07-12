@@ -9,6 +9,7 @@
 #include "defs.h"
 #include "msg.h"
 #include "buffer.h"
+#include "alphabet.h"
 #include "levels.h"
 #include "common.h"
 #include "context.h"
@@ -52,9 +53,8 @@ refNModels, INF *I){
   nSymbols      = NBytesInFile(Reader);
 
   // BUILD ALPHABET
-
-
-
+  ALPHABET *AL = CreateAlphabet();
+  LoadAlphabet(AL, Reader);
   
   // EXTRA MODELS DERIVED FROM EDITS
   totModels = P->nModels;

@@ -22,6 +22,7 @@ ALPHABET;
 
 ALPHABET   *CreateAlphabet   (void);
 void       LoadAlphabet      (ALPHABET *, FILE *);
+void       PrintAlphabet     (ALPHABET *);
 void       RemoveAlphabet    (ALPHABET *);
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
