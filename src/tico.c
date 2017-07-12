@@ -25,7 +25,7 @@ refNModels, INF *I){
   FILE        *Reader  = Fopen(P->tar[id], "r");
   char        *name    = concatenate(P->tar[id], ".co");
   FILE        *Writter = Fopen(name, "w");
-  uint32_t    n, k, cModel, totModels, idxPos;
+  uint32_t    n, k, x, cModel, totModels, idxPos;
   int32_t     idx = 0;
   uint64_t    compressed = 0, nSymbols = 0;
   double      *cModelWeight, cModelTotalWeight = 0;
@@ -68,9 +68,9 @@ refNModels, INF *I){
 
   pModel        = (PModel  **) Calloc(totModels, sizeof(PModel *));
   for(n = 0 ; n < totModels ; ++n)
-    pModel[n]   = CreatePModel(ALPHABET_SIZE);
-  MX            = CreatePModel(ALPHABET_SIZE);
-  PT            = CreateFloatPModel(ALPHABET_SIZE);
+    pModel[n]   = CreatePModel(AL->cardinality);
+  MX            = CreatePModel(AL->cardinality);
+  PT            = CreateFloatPModel(AL->cardinality);
   readerBuffer  = (uint8_t *) Calloc(BUFFER_SIZE, sizeof(uint8_t));
   symbolBuffer  = (uint8_t *) Calloc(BUFFER_SIZE + BGUARD, sizeof(uint8_t));
   symbolBuffer += BGUARD;
@@ -121,7 +121,7 @@ refNModels, INF *I){
       sym = readerBuffer[idxPos];
 
       symbolBuffer[idx] = sym = DNASymToNum(sym); //XXX
-      memset((void *)PT->freqs, 0, ALPHABET_SIZE * sizeof(double));
+      memset((void *)PT->freqs, 0, AL->cardinality * sizeof(double));
 
       n = 0;
       pos = &symbolBuffer[idx-1];
@@ -134,8 +134,8 @@ refNModels, INF *I){
         if(CM->edits != 0){
           ++n;
           CM->SUBS.seq->buf[CM->SUBS.seq->idx] = sym;
-          CM->SUBS.idx = GetPModelIdxCorr(CM->SUBS.seq->buf+CM->SUBS.seq->idx-1, 
-                         CM, CM->SUBS.idx);
+          CM->SUBS.idx = GetPModelIdxCorr(CM->SUBS.seq->buf+
+          CM->SUBS.seq->idx-1, CM, CM->SUBS.idx);
           ComputePModel(CM, pModel[n], CM->SUBS.idx, CM->SUBS.eDen);
           ComputeWeightedFreqs(cModelWeight[n], pModel[n], PT);
           }
@@ -143,10 +143,10 @@ refNModels, INF *I){
         ++n;
         }
 
-      MX->sum  = MX->freqs[0] = 1 + (unsigned) (PT->freqs[0] * MX_PMODEL);
-      MX->sum += MX->freqs[1] = 1 + (unsigned) (PT->freqs[1] * MX_PMODEL);
-      MX->sum += MX->freqs[2] = 1 + (unsigned) (PT->freqs[2] * MX_PMODEL);
-      MX->sum += MX->freqs[3] = 1 + (unsigned) (PT->freqs[3] * MX_PMODEL);
+      MX->sum = 0;
+      for(x = 0 ; x < AL->cardinality ; ++x){
+        MX->sum += MX->freqs[x] = 1 + (unsigned) (PT->freqs[x] * MX_PMODEL);
+        }
 
       AESym(sym, (int *)(MX->freqs), (int) MX->sum, Writter);
       #ifdef ESTIMATE
@@ -218,6 +218,7 @@ refNModels, INF *I){
   Free(PT);
   Free(readerBuffer);
   Free(symbolBuffer-BGUARD);
+  RemoveAlphabet(AL);
   fclose(Reader);
 
   if(P->verbose == 1)

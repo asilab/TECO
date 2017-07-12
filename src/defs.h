@@ -16,9 +16,6 @@
 #define FSEARCHMODE
 
 #define RUN_SUBS
-//#define RUN_ADDS
-//#define RUN_DELS
-
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // UNCOMMENT ONLY ONE:

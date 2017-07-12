@@ -254,30 +254,11 @@ U32 eDen){
   if(edits != 0){
     // SUBSTITUTIONS
     M->SUBS.seq       = CreateCBuffer(BUFFER_SIZE, BGUARD);
-    M->SUBS.state     = 0; // OFF BY DEFAULT
+    M->SUBS.in        = 0;
     M->SUBS.idx       = 0;
-    M->SUBS.number_of_editions = 0;
     M->SUBS.mask      = (uint8_t *) Calloc(BGUARD, sizeof(uint8_t));
     M->SUBS.threshold = edits;
     M->SUBS.eDen      = eDen;
-
-    // ADDITIONS
-    M->ADDS.seq       = CreateCBuffer(BUFFER_SIZE, BGUARD);
-    M->ADDS.state     = 0;
-    M->ADDS.idx       = 0;
-    M->ADDS.idx2      = 0;
-    M->ADDS.mask      = (uint8_t *) Calloc(BGUARD, sizeof(uint8_t));
-    M->ADDS.threshold = edits;
-    M->ADDS.eDen      = eDen;
-
-    // DELETIONS
-    M->DELS.seq       = CreateCBuffer(BUFFER_SIZE, BGUARD);
-    M->DELS.state     = 0;
-    M->DELS.idx       = 0;
-    M->DELS.idx2      = 0;
-    M->DELS.mask      = (uint8_t *) Calloc(BGUARD, sizeof(uint8_t));
-    M->DELS.threshold = edits;
-    M->DELS.eDen      = eDen;
     }
 
   Free(mult);
@@ -287,7 +268,7 @@ U32 eDen){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 int32_t BestId(uint32_t *f, uint32_t sum){
-  if(sum == 4) return 77; // ZERO COUNTERS
+  if(sum == 4) return -2; // ZERO COUNTERS
 
   uint32_t x, best = 0, max = f[0];
   for(x = 1 ; x < 4 ; ++x)
@@ -296,9 +277,7 @@ int32_t BestId(uint32_t *f, uint32_t sum){
       best = x;
       }
 
-  for(x = 0 ; x < 4 ; ++x) 
-    if(best != x && max == f[x]) 
-      return -best;
+  for(x = 0 ; x < 4 ; ++x) if(best != x && max == f[x]) return -1;
 
   return best;
   }
@@ -346,18 +325,15 @@ uint64_t GetPModelIdxCorr(U8 *p, CModel *M, uint64_t idx){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // SUBS ======================================================================
 
-void CalculateSUBS(CModel *M){
-  uint32_t x;
-  M->SUBS.number_of_editions = 0; 
-  for(x = 0 ; x < M->ctx ; ++x)
-    if(M->SUBS.mask[x] == 1)
-      M->SUBS.number_of_editions++;
-  }
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 void FailSUBS(CModel *M){
-  ShiftBuffer(M->SUBS.mask, M->ctx, 1);
+  uint32_t x, fails = 0;
+  for(x = 0 ; x < M->ctx ; ++x)
+    if(M->SUBS.mask[x] != 0)
+      ++fails;
+  if(fails <= M->SUBS.threshold)
+    ShiftBuffer(M->SUBS.mask, M->ctx, 1);
+  else 
+    M->SUBS.in = 0;
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -368,173 +344,31 @@ void HitSUBS(CModel *M){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-void ResetTMM(CModel *M){
-  M->SUBS.state = TMM_ON;
-  memset(M->SUBS.mask, 0, M->ctx);
-  M->SUBS.number_of_editions = 0;
-  }
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-void EvaluateStatus(CModel *M){
-  CalculateSUBS(M);
-  if(M->SUBS.number_of_editions >= M->SUBS.threshold)
-    M->SUBS.state = TMM_OFF;
-  else
-    M->SUBS.state = TMM_ON;   
-  }
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
 void CorrectCModelSUBS(CModel *M, PModel *P, uint8_t sym){
-
   int32_t best = BestId(P->freqs, P->sum);
-
-//  fprintf(stderr, "%u, %u\n", M->SUBS.number_of_editions, M->SUBS.state);
-
-  if(best == 77){ // NOT SEEN BEFORE
-    M->SUBS.state = TMM_OFF;
-    UpdateCBuffer(M->SUBS.seq);
-    return;
-    }
-  else if(best < 0 && M->SUBS.state == TMM_ON){ // AT LEAST 2 MAX FREQS
-    HitSUBS(M);
-    EvaluateStatus(M);
-    M->SUBS.seq->buf[M->SUBS.seq->idx] = abs(best);
-    UpdateCBuffer(M->SUBS.seq);
-    return;
-    }
-  
-  // IT HAS ONE MAX FREQ
-  if(M->SUBS.state == TMM_OFF && M->pModelIdx == M->SUBS.idx){
-    ResetTMM(M);
-    }
-
-  if(M->SUBS.state == TMM_ON){
-    if(best == sym){
-      HitSUBS(M);
-      }
-    else{
-      FailSUBS(M);
-      M->SUBS.seq->buf[M->SUBS.seq->idx] = best;
-      }
-    EvaluateStatus(M);
-    }
-
-  UpdateCBuffer(M->SUBS.seq);
-  }
-
-// ===========================================================================
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-void FailADDS(CModel *M){
-  uint32_t x, fails = 0;
-  for(x = 0 ; x < M->ctx ; ++x)
-    if(M->ADDS.mask[x] != 0)
-      ++fails;
-  if(fails <= M->ADDS.threshold)
-    ShiftBuffer(M->ADDS.mask, M->ctx, 1);
-  else
-    M->ADDS.state = 0;
-  }
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-void FailDELS(CModel *M){
-  uint32_t x, fails = 0;
-  for(x = 0 ; x < M->ctx ; ++x)
-    if(M->DELS.mask[x] != 0)
-      ++fails;
-  if(fails <= M->DELS.threshold)
-    ShiftBuffer(M->DELS.mask, M->ctx, 1);
-  else
-    M->DELS.state = 0;
-  }
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-void HitADDS(CModel *M){
-  ShiftBuffer(M->ADDS.mask, M->ctx, 0);
-  }
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-void HitDELS(CModel *M){
-  ShiftBuffer(M->DELS.mask, M->ctx, 0);
-  }
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-void CorrectCModelADDS(CModel *M, PModel *P, uint8_t sym){
-  int32_t status = 0, best = BestId2(P->freqs, P->sum);
   switch(best){
     case -2:  // IT IS A ZERO COUNTER [NOT SEEN BEFORE]
-      if(M->ADDS.state != 0){ 
-        FailADDS(M); 
-        status = 1; 
-        }
+      if(M->SUBS.in != 0)
+        FailSUBS(M);
     break;
     case -1:  // IT HAS AT LEAST TWO MAXIMUM FREQS [CONFUSION FREQS]
-      if(M->ADDS.state != 0){ 
-        HitADDS(M); 
-        status = 0; 
-        }
+      if(M->SUBS.in != 0)
+        HitSUBS(M);
     break;
     default:  // IT HAS ONE MAXIMUM FREQ
-      if(M->ADDS.state == 0){ // IF IS OUT
-        M->ADDS.state = 1;
-        memset(M->ADDS.mask, 0, M->ctx);
-        status = 0;
+      if(M->SUBS.in == 0){ // IF IS OUT
+        M->SUBS.in = 1;
+        memset(M->SUBS.mask, 0, M->ctx);
         }
       else{ // IF IS IN
-        if(best == sym){ HitADDS(M);  status = 0; }
-        else           { FailADDS(M); status = 1; }
+        if(best == sym) HitSUBS(M);
+        else{
+          FailSUBS(M);
+          M->SUBS.seq->buf[M->SUBS.seq->idx] = best; 
+          } // UPDATE BUFFER WITH NEW SYMBOL
         }
     }
-  if(status == 0) 
-    UpdateCBuffer(M->ADDS.seq); 
-  else 
-    M->ADDS.idx = M->ADDS.idx2;
-  }
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-void CorrectCModelDELS(CModel *M, PModel *P, uint8_t sym){
-  int32_t status = 0, best = BestId2(P->freqs, P->sum);
-
-  if(M->DELS.state == 0 && best != -1){ // IF IS OUT
-    M->DELS.state = 1;
-    memset(M->DELS.mask, 0, M->ctx+1);
-    status = 0;
-    UpdateCBuffer(M->DELS.seq); 
-    return;    
-    }
-
-  if(best == -1)
-    best = 0;
-
-  if(M->DELS.state == 1){ // IF IS IN
-    if(best == sym){ 
-      HitDELS(M);  
-      status = 0; 
-      }
-    else{ 
-      FailDELS(M); 
-      status = 1; 
-      }
-    }
-  
-  if(status == 1){
-    M->DELS.seq->buf[M->DELS.seq->idx] = best;
-    UpdateCBuffer(M->DELS.seq); 
-
-    M->DELS.idx = GetPModelIdxCorr(M->DELS.seq->buf+M->DELS.seq->idx-1, M, 
-    M->DELS.idx);
-
-    M->DELS.seq->buf[M->DELS.seq->idx] = sym;
-    }
-
-  UpdateCBuffer(M->DELS.seq); 
+  UpdateCBuffer(M->SUBS.seq);
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

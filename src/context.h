@@ -56,14 +56,13 @@ typedef struct{
 Array;
 
 typedef struct{
-  uint32_t state;
-  uint32_t number_of_editions;
+  uint32_t in;
   CBUF     *seq;      // BUFFER FOR EDITED SEQUENCE
   uint8_t  *mask;     // BUFFER FOR FAILS & HITS
   uint64_t idx;       // INDEX FOR UPDATE
   uint64_t idx2;      // AUXILIAR INDEX FOR UPDATE
   uint32_t threshold; // DISCARD ABOVE THIS VALUE
-  uint32_t eDen;      // ALPHA DENOMINATOR FOR THIS MODEL
+  uint32_t eDen; // ALPHA DENOMINATOR FOR THIS MODEL
   }
 Correct;
 
@@ -84,8 +83,6 @@ typedef struct{
   // EDITS HANDLING:
   U32        edits;
   Correct    SUBS;
-  Correct    ADDS;
-  Correct    DELS;
   }
 CModel;
 
@@ -105,19 +102,12 @@ FloatPModel;
 int32_t         BestId               (uint32_t *, uint32_t);
 int32_t         BestId2              (uint32_t *, uint32_t);
 void            HitSUBS              (CModel *);
-void            HitADDS              (CModel *);
-void            HitDELS              (CModel *);
 void            FailSUBS             (CModel *);
-void            FailADDS             (CModel *);
-void            FailDELS             (CModel *);
 void            FreeCModel           (CModel *);
 void            GetPModelIdx         (U8 *, CModel *);
 U8              GetPModelIdxIR       (U8 *, CModel *);
 uint64_t        GetPModelIdxCorr     (U8 *, CModel *, uint64_t);
 void            CorrectCModelSUBS    (CModel *, PModel *, uint8_t);
-void            CorrectCModelSUBS2    (CModel *, PModel *, uint8_t);
-void            CorrectCModelADDS    (CModel *, PModel *, uint8_t);
-void            CorrectCModelDELS    (CModel *, PModel *, uint8_t);
 PModel          *CreatePModel        (U32);
 FloatPModel     *CreateFloatPModel   (U32);
 void            ResetCModelIdx       (CModel *);

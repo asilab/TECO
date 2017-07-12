@@ -59,7 +59,7 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   totModels = P[id].nModels;
   for(n = 0 ; n < P[id].nModels ; ++n)
     if(P[id].model[n].edits != 0)
-      totModels += 1; // SUBS, ADDS           
+      totModels += 1; // SUBS           
 
   nSymbols      = P[id].size;
   pModel        = (PModel  **) Calloc(totModels, sizeof(PModel *));
@@ -120,7 +120,6 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
     for(n = 0 ; n < P[id].nModels ; ++n)
       if(cModels[n]->edits != 0){
         cModels[n]->SUBS.seq->buf[cModels[n]->SUBS.seq->idx] = sym;
-        cModels[n]->ADDS.seq->buf[cModels[n]->ADDS.seq->idx] = sym;
         }         
 
     cModelTotalWeight = 0;
