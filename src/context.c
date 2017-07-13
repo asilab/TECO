@@ -34,13 +34,13 @@ static uint64_t ZHASH(uint64_t z){
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/*
+
 static void InitHashTable(CModel *M){ 
   M->hTable.entries      = (Entry   **) Calloc(M->hTable.size, sizeof(Entry *));
   M->hTable.entrySize    = (uint8_t  *) Calloc(M->hTable.size, sizeof(uint8_t));
-  M->hTable.zeroCounters = (uint8_t **) Calloc(M->nSym, sizeof(uint8_t *));
+  M->hTable.zeroCounters = (HCC     **) Calloc(M->nSym, sizeof(HCC *));
   }
-*/
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 /*
@@ -80,6 +80,15 @@ static void InsertKey(HashTable *H, U32 hi, U64 idx, U8 s){
   H->entries[hi][H->index[hi]].counters = (0x01<<(s<<2));
   }
 */
+
+static void InsertKey(HashTable *H, U32 hi, U64 key, U8 s){
+  H->entries[hi] = (Entry *) Realloc(H->entries[hi], (H->entrySize[hi] + 1) * 
+  sizeof(Entry), sizeof(Entry));
+  H->entries[hi][H->entrySize[hi]].counters = (HCC *) Calloc(s, sizeof(HCC));
+  H->entries[hi][H->entrySize[hi]].key = key;
+  H->entrySize[hi]++;
+  }
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 /*
 void GetFreqsFromHCC(HCC c, uint32_t a, PModel *P){
@@ -135,6 +144,17 @@ void GetHCCounters(HashTable *H, U64 key, PModel *P, uint32_t a){
   return;
   }
 */
+
+static HCC *GetHCCounters(HashTable *H, U64 key){
+ uint64_t n, hi = key % H->size;              //The hash index
+
+ for(n = 0 ; n < H->entrySize[hi] ; ++n)
+   if(H->entries[hi][n].key == key)     // If key found
+     return H->entries[hi][n].counters;
+
+  return NULL;
+  } 
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 PModel *CreatePModel(U32 n){
@@ -165,39 +185,22 @@ void UpdateCModelCounter(CModel *M, U32 sym, U64 im){
   U32 n;
   ACC *AC;
   U64 idx = im;
+  idx = M->pModelIdx;
 
   if(M->mode == HASH_TABLE_MODE){
-/*
-    U16 counter, sc;
-    U32 s, hIndex = (idx = ZHASH(idx)) % HASH_SIZE;
-    #if defined(PREC32B)
-    U32 b = idx & 0xffffffff;
-    #elif defined(PREC16B)
-    U16 b = idx & 0xffff;
-    #else
-    U8  b = idx & 0xff;
-    #endif
+    uint64_t s;
+    uint64_t hIndex = idx % M->hTable.size;
 
-    for(n = 0 ; n < M->hTable.maxC ; ++n){
-      if(M->hTable.entries[hIndex][n].key == b){
-        sc = (M->hTable.entries[hIndex][n].counters>>(sym<<2))&0x0f;
-        if(sc == 15){ // IT REACHES THE MAXIMUM COUNTER: RENORMALIZE
-          for(s = 0 ; s < 4 ; ++s){ // RENORMALIZE EACH AND STORE
-            counter = ((M->hTable.entries[hIndex][n].counters>>(s<<2))&0x0f)>>1;
-            M->hTable.entries[hIndex][n].counters &= ~(0x0f<<(s<<2));
-            M->hTable.entries[hIndex][n].counters |= (counter<<(s<<2));
-            }
-          }
-        // GET, INCREMENT AND STORE COUNTER
-        sc = (M->hTable.entries[hIndex][n].counters>>(sym<<2))&0x0f;
-        ++sc;
-        M->hTable.entries[hIndex][n].counters &= ~(0x0f<<(sym<<2));
-        M->hTable.entries[hIndex][n].counters |= (sc<<(sym<<2));
+    for(n = 0 ; n < M->hTable.entrySize[hIndex] ; ++n)
+      if(M->hTable.entries[hIndex][n].key == idx){
+        if(++M->hTable.entries[hIndex][n].counters[sym] == UINT_MAX) 
+          for(s = 0 ; s < M->nSym ; ++s)
+            M->hTable.entries[hIndex][n].counters[s] /= 2;
         return;
         }
-      }
-    InsertKey(&M->hTable, hIndex, b, sym); // KEY NOT FOUND: WRITE ON OLDEST
-*/
+
+    InsertKey(&M->hTable, hIndex, idx, M->nSym);
+    M->hTable.entries[hIndex][n].counters[sym]++;
     }
   else{
     AC = &M->array.counters[idx * M->nSym];
@@ -233,18 +236,17 @@ U32 eDen, U32 nSym){
   M->ir          = ir  == 0 ? 0 : 1;
   M->ref         = ref == 0 ? 0 : 1;
 
-/*
-  if(ctx >= HASH_TABLE_BEGIN_CTX){
+  if((ULL)(M->nPModels) * M->nSym * sizeof(ACC) >> 20 > MAX_ARRAY_MEMORY){
     M->mode     = HASH_TABLE_MODE;
     M->maxCount = DEFAULT_MAX_COUNT >> 8;
-    InitHashTable(M, col);
+    M->hTable.size = HASH_SIZE;
+    InitHashTable(M);
     }
   else{
-*/
     M->mode     = ARRAY_MODE;
     M->maxCount = DEFAULT_MAX_COUNT;
     InitArray(M);
-//    }
+    }
 
   for(n = 0 ; n < M->ctx ; ++n){
     mult[n] = prod;
@@ -354,13 +356,20 @@ void CorrectCModelSUBS(CModel *M, PModel *P, uint8_t sym){
 
 void ComputePModel(CModel *M, PModel *P, uint64_t idx, uint32_t aDen){
   ACC *ac;
+  HCC *hc;
   uint32_t x;
   switch(M->mode){
-/*
+
     case HASH_TABLE_MODE:
-      GetHCCounters(&M->hTable, ZHASH(idx), P, aDen);
+     if(!(hc = GetHCCounters(&M->hTable, idx)))
+       hc = (HCC *) M->hTable.zeroCounters;
+     P->sum = 0;
+     for(x = 0 ; x < M->nSym ; ++x){
+       P->freqs[x] = 1 + aDen * hc[x];
+       P->sum += P->freqs[x];
+       }
     break;
-*/
+
     case ARRAY_MODE:
       ac = &M->array.counters[idx*M->nSym];
       P->sum = 0;
@@ -369,6 +378,7 @@ void ComputePModel(CModel *M, PModel *P, uint64_t idx, uint32_t aDen){
         P->sum += P->freqs[x];
         }
     break;
+
     default:
     fprintf(stderr, "Error: not implemented!\n");
     exit(1);

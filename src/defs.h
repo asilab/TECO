@@ -76,6 +76,7 @@ U32 garbage;
 
 #define BUFFER_SIZE            262144      
 #define PROGRESS_MIN           1000000
+#define MAX_ARRAY_MEMORY       2048    //Size in MBytes
 #define DEF_VERSION            0
 #define DEF_EXAMPLE            0
 #define DEFAULT_HELP           0

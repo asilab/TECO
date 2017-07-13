@@ -26,7 +26,7 @@
 #define  TMM_OFF              0
 
 typedef U16  ACC;                  // Size of context counters for arrays
-typedef U16  HCC;             // Size of context counters for hash tables
+typedef U8   HCC;                // Size of context counters for hash tables
 typedef U8   ENTMAX;                // Entry size (nKeys for each hIndex)
 typedef HCC  HCCounters[4];
 
@@ -53,8 +53,8 @@ HashTable;
 */
 
 typedef struct{
-  uint32_t  key;              //The key stored in this entry 
-  uint8_t   *counters;        //The context counters 
+  uint64_t  key;              //The key stored in this entry 
+  HCC       *counters;        //The context counters 
   }
 Entry;
 
@@ -62,7 +62,7 @@ typedef struct{
   uint32_t  size;             //Size of the hash table
   uint8_t   *entrySize;       //Number of keys in this entry
   Entry     **entries;        //The heads of the hash table lists
-  uint8_t   **zeroCounters;  
+  HCC       **zeroCounters;  
   }
 HashTable;
 
