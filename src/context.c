@@ -65,21 +65,6 @@ static void InitArray(CModel *M){
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/*
-static void InsertKey(HashTable *H, U32 hi, U64 idx, U8 s){
-  if(++H->index[hi] == H->maxC)
-    H->index[hi] = 0;
-
-  #if defined(PREC32B)
-  H->entries[hi][H->index[hi]].key = (U32)(idx&0xffffffff);
-  #elif defined(PREC16B)
-  H->entries[hi][H->index[hi]].key = (U16)(idx&0xffff);
-  #else
-  H->entries[hi][H->index[hi]].key = (U8)(idx&0xff);
-  #endif  
-  H->entries[hi][H->index[hi]].counters = (0x01<<(s<<2));
-  }
-*/
 
 static void InsertKey(HashTable *H, U32 hi, U64 key, U8 s){
   H->entries[hi] = (Entry *) Realloc(H->entries[hi], (H->entrySize[hi] + 1) * 
@@ -90,60 +75,6 @@ static void InsertKey(HashTable *H, U32 hi, U64 key, U8 s){
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/*
-void GetFreqsFromHCC(HCC c, uint32_t a, PModel *P){
-   P->sum  = (P->freqs[0] = 1 + a * ( c &  0x0f));
-   P->sum += (P->freqs[1] = 1 + a * ((c & (0x0f<<4))>>4));
-   P->sum += (P->freqs[2] = 1 + a * ((c & (0x0f<<8))>>8));
-   P->sum += (P->freqs[3] = 1 + a * ((c & (0x0f<<12))>>12));
-   }
-*/
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/*
-void GetHCCounters(HashTable *H, U64 key, PModel *P, uint32_t a){
-  U32 n, hIndex = key % HASH_SIZE;
-  #if defined(PREC32B)
-  U32 b = key & 0xffffffff;
-  #elif defined(PREC16B)
-  U16 b = key & 0xffff;
-  #else
-  U8  b = key & 0xff;
-  #endif
-
-  #ifdef FSEARCHMODE
-  U32 pos = H->index[hIndex];
-  // FROM INDEX-1 TO 0
-  for(n = pos+1 ; n-- ; ){
-    if(H->entries[hIndex][n].key == b){
-      GetFreqsFromHCC(H->entries[hIndex][n].counters, a, P);
-      return;
-      }
-    }
-  // FROM MAX_COLISIONS TO INDEX
-  for(n = (H->maxC-1) ; n > pos ; --n){
-    if(H->entries[hIndex][n].key == b){
-      GetFreqsFromHCC(H->entries[hIndex][n].counters, a, P);
-      return;
-      }
-    }
-  #else
-  // FROM 0 TO MAX
-  for(n = 0 ; n < H->maxC ; ++n){
-    if(H->entries[hIndex][n].key == b){
-      GetFreqsFromHCC(H->entries[hIndex][n].counters, a, P);
-      return;
-      }
-    }
-  #endif
-
-  P->freqs[0] = 1;
-  P->freqs[1] = 1;
-  P->freqs[2] = 1;
-  P->freqs[3] = 1;
-  P->sum      = 4; 
-  return;
-  }
-*/
 
 static HCC *GetHCCounters(HashTable *H, U64 key){
  uint64_t n, hi = key % H->size;              //The hash index
@@ -171,14 +102,6 @@ FloatPModel *CreateFloatPModel(U32 n){
   return F;
   }
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-#ifdef SWAP
-void SwapPos(Entry *A, Entry *B){
-  Entry *tmp = B;
-  *B = *A;
-  A = tmp;
-  }
-#endif
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 void UpdateCModelCounter(CModel *M, U32 sym, U64 im){
