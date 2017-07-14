@@ -241,6 +241,11 @@ CModel **LoadReference(Parameters *P)
   if(P->verbose == 1)
     fprintf(stdout, "Building reference model ...\n");
 
+  // BUILD ALPHABET
+  ALPHABET *AL = CreateAlphabet();
+  LoadAlphabet(AL, Reader);
+  PrintAlphabet(AL);
+
   readerBuffer  = (uint8_t *) Calloc(BUFFER_SIZE + 1, sizeof(uint8_t));
   symbolBuffer  = (uint8_t *) Calloc(BUFFER_SIZE + BGUARD+1, sizeof(uint8_t));
   symbolBuffer += BGUARD;
@@ -248,7 +253,7 @@ CModel **LoadReference(Parameters *P)
   for(n = 0 ; n < P->nModels ; ++n)
     if(P->model[n].type == REFERENCE)
       cModels[n] = CreateCModel(P->model[n].ctx, P->model[n].den, 
-      P->model[n].ir, REFERENCE, P->col, P->model[n].edits, P->model[n].eDen, 4);
+      P->model[n].ir, REFERENCE, P->col, P->model[n].edits, P->model[n].eDen, AL->cardinality);
 
   sym = fgetc(Reader);
   switch(sym){ 
