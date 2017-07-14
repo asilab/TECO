@@ -43,20 +43,24 @@ static void InitHashTable(CModel *M){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-/*
 void FreeCModel(CModel *M){
-  U32 k;
+  U32 k, n;
   if(M->mode == HASH_TABLE_MODE){
-    for(k = 0 ; k < HASH_SIZE ; ++k)
-      Free(M->hTable.entries[k]);
+    for(k = 0 ; k < M->hTable.size ; ++k){
+      if(M->hTable.entrySize[k] > 0){
+        for(n = 0 ; n < M->hTable.entrySize[k] ; ++n){
+          Free(M->hTable.entries[k][n].counters);
+          }
+        Free(M->hTable.entries[k]);
+        }
+      }
     Free(M->hTable.entries);
-    Free(M->hTable.index);
+    Free(M->hTable.entrySize);
     }
   else // TABLE_MODE
     Free(M->array.counters);
   Free(M);
   }
-*/
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -116,7 +120,7 @@ void UpdateCModelCounter(CModel *M, U32 sym, U64 im){
 
     for(n = 0 ; n < M->hTable.entrySize[hIndex] ; ++n)
       if(M->hTable.entries[hIndex][n].key == idx){
-        if(++M->hTable.entries[hIndex][n].counters[sym] == UINT_MAX) 
+        if(++M->hTable.entries[hIndex][n].counters[sym] == 255) 
           for(s = 0 ; s < M->nSym ; ++s)
             M->hTable.entries[hIndex][n].counters[s] /= 2;
         return;
@@ -155,7 +159,6 @@ U32 eDen, U32 nSym){
   M->alphaDen    = aDen;
   M->edits       = edits;
   M->pModelIdx   = 0;
-  M->pModelIdxIR = M->nPModels - 1;
   M->ir          = ir  == 0 ? 0 : 1;
   M->ref         = ref == 0 ? 0 : 1;
 
@@ -212,7 +215,6 @@ int32_t BestId(uint32_t *f, uint32_t sum, uint32_t nSym){
 
 void ResetCModelIdx(CModel *M){
   M->pModelIdx   = 0;
-  M->pModelIdxIR = M->nPModels - 1;
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

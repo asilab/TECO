@@ -171,11 +171,12 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   Free(MX);
   Free(name);
   Free(cModelWeight);
-  for(n = 0 ; n < P[id].nModels ; ++n)
+  for(n = 0 ; n < P[id].nModels ; ++n){
     if(P[id].model[n].type == REFERENCE)
       ResetCModelIdx(cModels[n]);
     else
       FreeCModel(cModels[n]);
+    }
   for(n = 0 ; n < totModels ; ++n){
     Free(pModel[n]->freqs);
     Free(pModel[n]);
