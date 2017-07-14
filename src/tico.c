@@ -20,7 +20,7 @@
 //////////////////////////////////////////////////////////////////////////////
 // - - - - - - - - - - - - - - C O M P R E S S O R - - - - - - - - - - - - - -
 
-void Compress(Parameters *P, CModel **cModels, uint8_t id, uint32_t 
+int Compress(Parameters *P, CModel **cModels, uint8_t id, uint32_t 
 refNModels, INF *I){
   FILE        *Reader  = Fopen(P->tar[id], "r");
   char        *name    = concatenate(P->tar[id], ".co");
@@ -197,11 +197,11 @@ refNModels, INF *I){
   Free(MX);
   Free(name);
   Free(cModelWeight);
-//  for(n = 0 ; n < P->nModels ; ++n)
-//    if(P->model[n].type == REFERENCE)
-//      ResetCModelIdx(cModels[n]);
-//    else
-//      FreeCModel(cModels[n]);
+  for(n = 0 ; n < P->nModels ; ++n)
+    if(P->model[n].type == REFERENCE)
+      ResetCModelIdx(cModels[n]);
+    else
+      FreeCModel(cModels[n]);
   for(n = 0 ; n < totModels ; ++n){
     Free(pModel[n]->freqs);
     Free(pModel[n]);
@@ -218,6 +218,7 @@ refNModels, INF *I){
 
   I[id].bytes = _bytes_output;
   I[id].size  = compressed;
+  return AL-> cardinality;
   }
 
 
@@ -330,7 +331,7 @@ CModel **LoadReference(Parameters *P)
 int32_t main(int argc, char *argv[]){
   char        **p = *&argv, **xargv, *xpl = NULL;
   CModel      **refModels;
-  int32_t     xargc = 0;
+  int32_t     xargc = 0, cardinality = 1;
   uint32_t    n, k, refNModels, col;
   uint64_t    totalBytes, headerBytes, totalSize;
   clock_t     stop = 0, start = clock();
@@ -445,7 +446,7 @@ int32_t main(int argc, char *argv[]){
   totalBytes  = 0;
   headerBytes = 0;
   for(n = 0 ; n < P->nTar ; ++n){
-    Compress(P, refModels, n, refNModels, I);
+    cardinality = Compress(P, refModels, n, refNModels, I);
     totalSize   += I[n].size;
     totalBytes  += I[n].bytes;
     headerBytes += I[n].header;
@@ -457,7 +458,7 @@ int32_t main(int argc, char *argv[]){
       I[n].bytes);
       PrintHRBytes(I[n].bytes);
       fprintf(stdout, ") , Normalized Dissimilarity Rate: %.6g\n", 
-      (8.0*I[n].bytes)/(2*I[n].size));
+      (8.0*I[n].bytes)/(log2(cardinality)*I[n].size));
       }
 
 
@@ -465,7 +466,7 @@ int32_t main(int argc, char *argv[]){
   PrintHRBytes(totalBytes);
   fprintf(stdout, "), %.4g bpb, %.4g bps w/ no header, Normalized Dissimilarity" 
   " Rate: %.6g\n", ((8.0*totalBytes)/totalSize), ((8.0*(totalBytes-headerBytes))
-  /totalSize), (8.0*totalBytes)/(2.0*totalSize));  
+  /totalSize), (8.0*totalBytes)/(log2(cardinality)*totalSize));  
   stop = clock();
   fprintf(stdout, "Spent %g sec.\n", ((double)(stop-start))/CLOCKS_PER_SEC);
 
