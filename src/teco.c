@@ -9,6 +9,7 @@
 #include "msg.h"
 #include "defs.h"
 #include "buffer.h"
+#include "alphabet.h"
 #include "common.h"
 #include "context.h"
 #include "bitio.h"
@@ -23,10 +24,11 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   char        *name    = ReplaceSubStr(P->tar[id], ".co", ".de"); 
   FILE        *Writter = Fopen(name, "w");
   uint64_t    nSymbols = 0;
-  uint32_t    n, k, cModel, totModels;
+  uint32_t    n, k, x, cModel, totModels;
   double      *cModelWeight, cModelTotalWeight = 0;
   int32_t     idx = 0, idxOut = 0;
-  uint8_t     *outBuffer, *symbolBuffer, sym = 0, irSym = 0, *pos;
+  uint8_t     *outBuffer, sym = 0, *pos;
+  CBUF        *symBuf = CreateCBuffer(BUFFER_SIZE, BGUARD);
   PModel      **pModel, *MX;
   FloatPModel *PT;
   #ifdef PROGRESS
@@ -37,12 +39,21 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
     fprintf(stderr, "Decompressing %"PRIu64" symbols of target %d ...\n", 
     P[id].size, id + 1);
 
+  ALPHABET *AL = CreateAlphabet();
+
   startinputtingbits();
   start_decode(Reader);
 
   P[id].watermark        = ReadNBits(32, Reader);
   garbage                = ReadNBits(46, Reader);
   P[id].size             = ReadNBits(46, Reader);
+  AL->cardinality        = ReadNBits(16, Reader);
+  for(x = 0 ; x < 256 ; ++x)
+    AL->revMap[x] = INVALID_SYMBOL;
+  for(x = 0 ; x < AL->cardinality ; ++x){
+    AL->toChars[x] = ReadNBits(8, Reader);
+    AL->revMap[(uint8_t) AL->toChars[x]] = x;
+    }
   P[id].gamma            = ReadNBits(32, Reader) / 65536.0;
   P[id].nModels          = ReadNBits(16, Reader);
   for(k = 0 ; k < P[id].nModels ; ++k){
@@ -53,6 +64,8 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
     P[id].model[k].type  = ReadNBits( 1, Reader);
     }
 
+  PrintAlphabet(AL);
+
   // EXTRA MODELS DERIVED FROM EDITS
   totModels = P[id].nModels;
   for(n = 0 ; n < P[id].nModels ; ++n)
@@ -62,12 +75,10 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   nSymbols      = P[id].size;
   pModel        = (PModel  **) Calloc(totModels, sizeof(PModel *));
   for(n = 0 ; n < totModels ; ++n)
-    pModel[n]   = CreatePModel(ALPHABET_SIZE);
-  MX            = CreatePModel(ALPHABET_SIZE);
-  PT            = CreateFloatPModel(ALPHABET_SIZE);
+    pModel[n]   = CreatePModel(AL->cardinality);
+  MX            = CreatePModel(AL->cardinality);
+  PT            = CreateFloatPModel(AL->cardinality);
   outBuffer     = (uint8_t  *) Calloc(BUFFER_SIZE, sizeof(uint8_t));
-  symbolBuffer  = (uint8_t  *) Calloc(BUFFER_SIZE + BGUARD, sizeof(uint8_t));
-  symbolBuffer += BGUARD;
   cModelWeight  = (double   *) Calloc(totModels, sizeof(double ));
 
   for(n = 0 ; n < totModels ; ++n)
@@ -76,8 +87,7 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   for(n = 0 ; n < P[id].nModels ; ++n){
     if(P[id].model[n].type == TARGET)
       cModels[n] = CreateCModel(P[id].model[n].ctx , P[id].model[n].den, 
-      P[id].model[n].ir, TARGET, P[id].col, P[id].model[n].edits, 
-      P[id].model[n].eDen);
+      TARGET, P[id].model[n].edits, P[id].model[n].eDen, AL->cardinality);
     }
 
   while(nSymbols--){
@@ -85,15 +95,15 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
     CalcProgress(P[id].size, ++i);
     #endif
 
-    memset((void *)PT->freqs, 0, ALPHABET_SIZE * sizeof(double));
+    memset((void *)PT->freqs, 0, AL->cardinality * sizeof(double));
 
     n = 0;
-    pos = &symbolBuffer[idx-1];
+    pos = &symBuf->buf[symBuf->idx-1];
     for(cModel = 0 ; cModel < P[id].nModels ; ++cModel){
       GetPModelIdx(pos, cModels[cModel]);
       ComputePModel(cModels[cModel], pModel[n], cModels[cModel]->pModelIdx,
       cModels[cModel]->alphaDen);
-      ComputeWeightedFreqs(cModelWeight[n], pModel[n], PT);
+      ComputeWeightedFreqs(cModelWeight[n], pModel[n], PT, AL->cardinality);
       if(cModels[cModel]->edits != 0){ // SUBSTITUTIONAL HANDLING
         ++n;
         cModels[cModel]->SUBS.idx = GetPModelIdxCorr(cModels[cModel]->SUBS.seq
@@ -101,19 +111,19 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
         ->SUBS.idx);
         ComputePModel(cModels[cModel], pModel[n], cModels[cModel]->SUBS.idx,
         cModels[cModel]->SUBS.eDen);
-        ComputeWeightedFreqs(cModelWeight[n], pModel[n], PT);
+        ComputeWeightedFreqs(cModelWeight[n], pModel[n], PT, AL->cardinality);
         }
       ++n;
       }
 
-    MX->sum  = MX->freqs[0] = 1 + (unsigned) (PT->freqs[0] * MX_PMODEL);
-    MX->sum += MX->freqs[1] = 1 + (unsigned) (PT->freqs[1] * MX_PMODEL);
-    MX->sum += MX->freqs[2] = 1 + (unsigned) (PT->freqs[2] * MX_PMODEL);
-    MX->sum += MX->freqs[3] = 1 + (unsigned) (PT->freqs[3] * MX_PMODEL);
+    MX->sum = 0;
+    for(x = 0 ; x < AL->cardinality ; ++x){
+      MX->sum += MX->freqs[x] = 1 + (unsigned) (PT->freqs[x] * MX_PMODEL);
+      }
 
-    symbolBuffer[idx] = sym = ArithDecodeSymbol(ALPHABET_SIZE, (int *) 
+    symBuf->buf[symBuf->idx] = sym = ArithDecodeSymbol(AL->cardinality, (int *) 
     MX->freqs, (int) MX->sum, Reader);
-    outBuffer[idxOut] = NumToDNASym(sym);
+    outBuffer[idxOut] = AL->toChars[sym];
 
     for(n = 0 ; n < P[id].nModels ; ++n)
       if(cModels[n]->edits != 0){
@@ -128,13 +138,8 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
       }
 
     for(n = 0 ; n < P[id].nModels ; ++n){
-      if(P[id].model[n].type == TARGET){
+      if(P[id].model[n].type == TARGET)
         UpdateCModelCounter(cModels[n], sym, cModels[n]->pModelIdx);
-        if(cModels[n]->ir == 1){                // REVERSE COMPLEMENTS
-          irSym = GetPModelIdxIR(symbolBuffer+idx, cModels[n]);
-          UpdateCModelCounter(cModels[n], irSym, cModels[n]->pModelIdxIR);
-          }
-        }
       }
 
     for(n = 0 ; n < totModels ; ++n)
@@ -153,10 +158,7 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
       idxOut = 0;
       }
 
-    if(++idx == BUFFER_SIZE){
-      memcpy(symbolBuffer-BGUARD, symbolBuffer+idx-BGUARD, BGUARD);
-      idx = 0;
-      }
+    UpdateCBuffer(symBuf);
     }
 
   if(idxOut != 0) 
@@ -182,7 +184,8 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   Free(pModel);
   Free(PT);
   Free(outBuffer);
-  Free(symbolBuffer-BGUARD);
+  RemoveCBuffer(symBuf);
+  RemoveAlphabet(AL);
   fclose(Reader);
 
   if(P->verbose == 1)
@@ -192,109 +195,74 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
 
 //////////////////////////////////////////////////////////////////////////////
 // - - - - - - - - - - - - - - - - R E F E R E N C E - - - - - - - - - - - - -
-
-CModel **LoadReference(Parameters *P)
-  {
+  
+CModel **LoadReference(Parameters *P){
   FILE      *Reader = Fopen(P->ref, "r");
   uint32_t  n, k, idxPos;
   uint64_t  nBases = 0;
   int32_t   idx = 0;
-  uint8_t   *readerBuffer, *symbolBuffer, sym, irSym, type = 0, header = 1,
-            line = 0, dna = 0;
+  uint8_t   *readerBuffer, sym;
+  CBUF      *symBuf = CreateCBuffer(BUFFER_SIZE, BGUARD);
   CModel    **cModels;
+
   #ifdef PROGRESS
   uint64_t  i = 0;
   #endif
 
   if(P->verbose == 1)
-    fprintf(stderr, "Building reference model ...\n");
+    fprintf(stdout, "Building reference model ...\n");
+
+  // BUILD ALPHABET
+  ALPHABET *AL = CreateAlphabet();
+  LoadAlphabet(AL, Reader);
+  PrintAlphabet(AL);
 
   readerBuffer  = (uint8_t *) Calloc(BUFFER_SIZE + 1, sizeof(uint8_t));
-  symbolBuffer  = (uint8_t *) Calloc(BUFFER_SIZE + BGUARD+1, sizeof(uint8_t));
-  symbolBuffer += BGUARD;
-
-  cModels    = (CModel **) Malloc(P->nModels * sizeof(CModel *)); 
+  cModels       = (CModel **) Malloc(P->nModels * sizeof(CModel *));
   for(n = 0 ; n < P->nModels ; ++n)
     if(P->model[n].type == REFERENCE)
-      cModels[n] = CreateCModel(P->model[n].ctx, P->model[n].den,
-      P->model[n].ir, REFERENCE, P->col, P->model[n].edits, P->model[n].eDen);
+      cModels[n] = CreateCModel(P->model[n].ctx, P->model[n].den, REFERENCE,
+      P->model[n].edits, P->model[n].eDen, AL->cardinality);
 
-  sym = fgetc(Reader);
-  switch(sym){
-    case '>': type = 1; break;
-    case '@': type = 2; break;
-    default : type = 0;
-    }
-  rewind(Reader);
+  nBases = NDNASyminFile(Reader);
 
-  switch(type){
-    case 1:  nBases = NDNASymInFasta(Reader); break;
-    case 2:  nBases = NDNASymInFastq(Reader); break;
-    default: nBases = NDNASyminFile (Reader); break;
-    }
-
-  P->checksum   = 0;
+  P->checksum = 0;
   while((k = fread(readerBuffer, 1, BUFFER_SIZE, Reader)))
-    for(idxPos = 0 ; idxPos < k ; ++idxPos)
-      {
-      sym = readerBuffer[idxPos];
-      if(type == 1){  // IS A FAST[A] FILE
-        if(sym == '>'){ header = 1; continue; }
-        if(sym == '\n' && header == 1){ header = 0; continue; }
-        if(sym == '\n') continue;
-        if(sym == 'N' ) continue;
-        if(header == 1) continue;
-        }
-      else if(type == 2){ // IS A FAST[Q] FILE
-        switch(line){
-          case 0: if(sym == '\n'){ line = 1; dna = 1; } break;
-          case 1: if(sym == '\n'){ line = 2; dna = 0; } break;
-          case 2: if(sym == '\n'){ line = 3; dna = 0; } break;
-          case 3: if(sym == '\n'){ line = 0; dna = 0; } break;
-          }
-        if(dna == 0 || sym == '\n') continue;
-        if(dna == 1 && sym == 'N' ) continue;
-        }
+    for(idxPos = 0 ; idxPos < k ; ++idxPos){
 
-      // FINAL FILTERING DNA CONTENT
-      if(sym != 'A' && sym != 'C' && sym != 'G' && sym != 'T')
-        continue;
-
-      symbolBuffer[idx] = sym = DNASymToNum(sym);      
+      symBuf->buf[symBuf->idx] = sym = readerBuffer[idxPos];
       P->checksum = (P->checksum + (uint8_t) sym);
 
       for(n = 0 ; n < P->nModels ; ++n)
         if(P->model[n].type == REFERENCE){
-          GetPModelIdx(symbolBuffer+idx-1, cModels[n]);
+          GetPModelIdx(symBuf->buf+symBuf->idx-1, cModels[n]);
           UpdateCModelCounter(cModels[n], sym, cModels[n]->pModelIdx);
-          if(cModels[n]->ir == 1){                        // Inverted repeats
-            irSym = GetPModelIdxIR(symbolBuffer+idx, cModels[n]);
-            UpdateCModelCounter(cModels[n], irSym, cModels[n]->pModelIdxIR);
-            }
           }
 
-      if(++idx == BUFFER_SIZE){
-        memcpy(symbolBuffer - BGUARD, symbolBuffer + idx - BGUARD, BGUARD);
-        idx = 0;
-        }
+      UpdateCBuffer(symBuf);
+
       #ifdef PROGRESS
       CalcProgress(nBases, ++i);
       #endif
       }
- 
-  P->checksum %= CHECKSUMGF; 
+
+  P->checksum %= CHECKSUMGF;
   for(n = 0 ; n < P->nModels ; ++n)
     if(P->model[n].type == REFERENCE)
       ResetCModelIdx(cModels[n]);
   Free(readerBuffer);
-  Free(symbolBuffer-BGUARD);
+  RemoveCBuffer(symBuf);
+  RemoveAlphabet(AL);
   fclose(Reader);
 
   if(P->verbose == 1)
-    fprintf(stderr, "Done!                          \n");  // SPACES ARE VALID  
+    fprintf(stdout, "Done!                          \n");  // SPACES ARE VALID  
+  else
+    fprintf(stdout, "                               \n");  // SPACES ARE VALID
 
   return cModels;
   }
+
   
 //////////////////////////////////////////////////////////////////////////////
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -304,7 +272,7 @@ CModel **LoadReference(Parameters *P)
 int32_t main(int argc, char *argv[]){
   char        **p = *&argv;
   CModel      **refModels; 
-  uint32_t    n, k, *checksum, refNModels = 0;
+  uint32_t    n, k, *checksum, refNModels = 0, garbage, cardinality;
   Parameters  *P;
   FILE        *Reader = NULL;
   uint8_t     help, verbose, force, nTar = 1;
@@ -363,14 +331,15 @@ int32_t main(int argc, char *argv[]){
       }
     checksum[n]    = ReadNBits(46, Reader);
     P[n].size      = ReadNBits(46, Reader);
+    cardinality    = ReadNBits(16, Reader);
+    for(k = 0 ; k < cardinality ; ++k)
+      garbage      = ReadNBits(8,  Reader);
     P[n].gamma     = ReadNBits(32, Reader) / 65536.0;
-    P[n].col       = ReadNBits(32, Reader);
     P[n].nModels   = ReadNBits(16, Reader);
     P[n].model     = (ModelPar *) Calloc(P[n].nModels, sizeof(ModelPar));
     for(k = 0 ; k < P[n].nModels ; ++k){
       P[n].model[k].ctx   = ReadNBits(16, Reader); 
       P[n].model[k].den   = ReadNBits(16, Reader); 
-      P[n].model[k].ir    = ReadNBits( 1, Reader); 
       P[n].model[k].edits = ReadNBits( 8, Reader); 
       P[n].model[k].eDen  = ReadNBits(32, Reader); 
       P[n].model[k].type  = ReadNBits( 1, Reader);
