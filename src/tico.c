@@ -225,7 +225,7 @@ refNModels, INF *I){
 CModel **LoadReference(Parameters *P){
   FILE      *Reader = Fopen(P->ref, "r");
   uint32_t  n, k, idxPos;
-  uint64_t  nBases = 0;
+  uint64_t  nSymbols = 0;
   int32_t   idx = 0;
   uint8_t   *readerBuffer, sym;
   CBUF      *symBuf = CreateCBuffer(BUFFER_SIZE, BGUARD);
@@ -250,13 +250,13 @@ CModel **LoadReference(Parameters *P){
       cModels[n] = CreateCModel(P->model[n].ctx, P->model[n].den, REFERENCE, 
       P->model[n].edits, P->model[n].eDen, AL->cardinality);
 
-  nBases = NDNASyminFile(Reader);
+  nSymbols = NBytesInFile(Reader);
 
   P->checksum = 0;
   while((k = fread(readerBuffer, 1, BUFFER_SIZE, Reader)))
     for(idxPos = 0 ; idxPos < k ; ++idxPos){
 
-      symBuf->buf[symBuf->idx] = sym = readerBuffer[idxPos];
+      symBuf->buf[symBuf->idx] = sym = AL->revMap[ readerBuffer[idxPos] ];
       P->checksum = (P->checksum + (uint8_t) sym);
 
       for(n = 0 ; n < P->nModels ; ++n)
@@ -268,7 +268,7 @@ CModel **LoadReference(Parameters *P){
       UpdateCBuffer(symBuf);
 
       #ifdef PROGRESS
-      CalcProgress(nBases, ++i);
+      CalcProgress(nSymbols, ++i);
       #endif
       }
  
