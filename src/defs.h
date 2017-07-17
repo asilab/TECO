@@ -13,18 +13,7 @@
 
 #define ESTIMATE
 #define PROGRESS
-#define FSEARCHMODE
-
 #define RUN_SUBS
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// UNCOMMENT ONLY ONE:
-//#define PREC32B // UNCOMMENT: CONTEXTS UP TO 28 (IT WILL USE HIGH MEMORY!)
-#define PREC16B // UNCOMMENT: CONTEXTS UP TO 20 (IT WILL USE MEDIUM MEMORY!)
-//#define PREC8B  // UNCOMMENT: CONTEXTS UP TO 16 (IT WILL USE LOW MEMORY!)
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-//#define SWAP
 
 typedef uint64_t ULL;
 typedef uint64_t U64;
@@ -39,7 +28,6 @@ typedef int8_t   I8;
 typedef struct{
   U32 ctx;
   U32 den;
-  U32 ir;
   U32 edits;
   U32 eDen;
   U8  type;
@@ -52,7 +40,6 @@ typedef struct{
   U8       force;
   U8       estim;
   U8       level;
-  U32      col;
   ModelPar *model;
   char     *ref;
   char     **tar;
@@ -92,7 +79,6 @@ U32 garbage;
 #define BGUARD                 32
 #define DEFAULT_MAX_COUNT      ((1 << (sizeof(ACC) * 8)) - 1)
 #define MX_PMODEL              65535
-#define ALPHABET_SIZE          4
 #define CHECKSUMGF             1073741824
 #define WATERMARK              16042014
 #define DEFAULT_GAMMA          0.90

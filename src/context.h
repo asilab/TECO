@@ -30,76 +30,50 @@ typedef U8   HCC;                // Size of context counters for hash tables
 typedef U8   ENTMAX;                // Entry size (nKeys for each hIndex)
 typedef HCC  HCCounters[4];
 
-/*
 typedef struct{
-  #if defined(PREC32B)
-  U32        key;                         // The key stored in this entry
-  #elif defined(PREC16B)
-  U16        key;
-  #else
-  U8         key;
-  #endif
-  HCC        counters;           // "Small" counters: 2 bits for each one
+  uint64_t  key;            //The key stored in this entry 
+  HCC       *counters;      //The context counters 
   }
 Entry;
 
 typedef struct{
-  ENTMAX     *index;                      // Number of keys in this entry
-  Entry      **entries;              // The heads of the hash table lists
-  uint32_t   maxC;
-  uint32_t   maxH;
-  }
-HashTable;
-*/
-
-typedef struct{
-  uint64_t  key;              //The key stored in this entry 
-  HCC       *counters;        //The context counters 
-  }
-Entry;
-
-typedef struct{
-  uint32_t  size;             //Size of the hash table
-  uint8_t   *entrySize;       //Number of keys in this entry
-  Entry     **entries;        //The heads of the hash table lists
+  uint32_t  size;           //Size of the hash table
+  uint8_t   *entrySize;     //Number of keys in this entry
+  Entry     **entries;      //The heads of the hash table lists
   HCC       **zeroCounters;  
   }
 HashTable;
 
 typedef struct{
-  ACC        *counters;
+  ACC       *counters;
   }
 Array;
 
 typedef struct{
-  uint32_t in;
-  CBUF     *seq;        // BUFFER FOR EDITED SEQUENCE
-  uint8_t  *mask;       // BUFFER FOR FAILS & HITS
-  uint64_t idx;         // INDEX FOR UPDATE
-  uint64_t idx2;        // AUXILIAR INDEX FOR UPDATE
-  uint32_t threshold;   // DISCARD ABOVE THIS VALUE
-  uint32_t eDen;        // ALPHA DENOMINATOR FOR THIS MODEL
+  uint32_t  in;
+  CBUF      *seq;           // BUFFER FOR EDITED SEQUENCE
+  uint8_t   *mask;          // BUFFER FOR FAILS & HITS
+  uint64_t  idx;            // INDEX FOR UPDATE
+  uint64_t  idx2;           // AUXILIAR INDEX FOR UPDATE
+  uint32_t  threshold;      // DISCARD ABOVE THIS VALUE
+  uint32_t  eDen;           // ALPHA DENOMINATOR FOR THIS MODEL
   }
 Correct;
 
 typedef struct{
-  U32        ctx;                    // Current depth of context template
-  U64        nPModels;            // Maximum number of probability models
-  U32        alphaDen;                            // Denominator of alpha
-  U32        maxCount;        // Counters /= 2 if one counter >= maxCount
+  U32        ctx;           // Current depth of context template
+  U64        nPModels;      // Maximum number of probability models
+  U32        alphaDen;      // Denominator of alpha
+  U32        maxCount;      // Counters /= 2 if one counter >= maxCount
   U64        multiplier;
-  U8         ir;
   U8         ref;
   U32        mode;
   HashTable  hTable;
   Array      array;
-  // INDEXES 
-  U64        pModelIdx;
-  U64        pModelIdxIR;
-  // EDITS HANDLING:
-  U32        edits;
-  U32        nSym;
-  Correct    SUBS;
+  U64        pModelIdx;     // IDX
+  U32        edits;         // EDITS
+  U32        nSym;          // EDITS
+  Correct    SUBS;          // EDITS
   }
 CModel;
 
@@ -127,7 +101,7 @@ PModel          *CreatePModel        (U32);
 FloatPModel     *CreateFloatPModel   (U32);
 void            ResetCModelIdx       (CModel *);
 void            UpdateCModelCounter  (CModel *, U32, U64);
-CModel          *CreateCModel        (U32, U32, U32, U8, U32, U32, U32, U32);
+CModel          *CreateCModel        (U32, U32, U8, U32, U32, U32);
 void            ComputePModel        (CModel *, PModel *, uint64_t, uint32_t);
 void            ComputeWeightedFreqs (double, PModel *, FloatPModel *, uint32_t);
 double          PModelSymbolNats     (PModel *, U32);

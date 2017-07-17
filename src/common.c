@@ -398,10 +398,10 @@ char *ArgsString(char *def, char *arg[], uint32_t n, char *str)
 
 ModelPar ArgsUniqModel(char *str, uint8_t type)
   {
-  uint32_t  ctx, den, ir, edits, eDen;
+  uint32_t  ctx, den, edits, eDen;
   ModelPar  Mp;
 
-  if(sscanf(str, "%u:%u:%u:%u/%u", &ctx, &den, &ir, &edits, &eDen ) == 5){
+  if(sscanf(str, "%u:%u:%u/%u", &ctx, &den, &edits, &eDen ) == 4){
     if(ctx > MAX_CTX || ctx < MIN_CTX || den > MAX_DEN || den < MIN_DEN || 
     edits > 256 || eDen > 50000){
       fprintf(stderr, "Error: invalid model arguments range!\n");
@@ -412,7 +412,6 @@ ModelPar ArgsUniqModel(char *str, uint8_t type)
       }
     Mp.ctx   = ctx;
     Mp.den   = den;
-    Mp.ir    = ir;
     Mp.edits = edits;
     Mp.eDen  = eDen;
     Mp.type  = type;
@@ -509,31 +508,10 @@ uint32_t ReadFNames(Parameters *P, char *arg)
 
 void CalcProgress(uint64_t size, uint64_t i)
   {
+  if(size < 101) return;
   if(i % (size / 100) == 0 && size > PROGRESS_MIN)
     fprintf(stderr, "Progress:%3d %%\r", (uint8_t) (i / (size / 100)));
   }
-
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-/*
-uint32_t CalcCkecksum(Parameters *P)
-  {
-  File *Reader = Fopen(P->ref, "r");
-  uint64_t checksum = 0;
-  uint8_t  *readerBuffer;
-  uint32_t idxPos, k;
-
-  readerBuffer  = (uint8_t  *) Calloc(BUFFER_SIZE + 1, sizeof(uint8_t));
-  while((k = fread(readerBuffer, 1, BUFFER_SIZE, Reader)))
-    for(idxPos = 0 ; idxPos < k ; ++idxPos)
-      checksum += (uint8_t) DNASymToNum(readerBuffer[idxPos]); 
-  checksum %= CHECKSUMGF;
-
-  Free(readerBuffer);
-  fclose(Reader);
-
-  return (uint32_t) checksum;
-  }
-*/
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
@@ -568,8 +546,6 @@ void PrintArgs(Parameters *P)
       P->model[n].ctx);
       fprintf(stderr, "  [+] Alpha denominator ............ %u\n", 
       P->model[n].den);
-      fprintf(stderr, "  [+] Inverted repeats ............. %s\n", 
-      P->model[n].ir == 0 ? "no" : "yes");
       fprintf(stderr, "  [+] Allowable substitutions ...... %u\n",
       P->model[n].edits);
       if(P->model[n].edits != 0)
@@ -585,8 +561,6 @@ void PrintArgs(Parameters *P)
       P->model[n].ctx);
       fprintf(stderr, "  [+] Alpha denominator ............ %u\n",
       P->model[n].den);
-      fprintf(stderr, "  [+] Inverted repeats ............. %s\n",
-      P->model[n].ir == 0 ? "no" : "yes");
       fprintf(stderr, "  [+] Allowable substitutions ...... %u\n",
       P->model[n].edits);
       if(P->model[n].edits != 0)
@@ -595,7 +569,6 @@ void PrintArgs(Parameters *P)
       }
 
   fprintf(stderr, "Gamma .............................. %.2lf\n", P->gamma);
-  fprintf(stderr, "Maximum Collisions ................. %u\n", P->col);
   if(P->ref != NULL)
     fprintf(stderr, "Reference filename ................. %s\n", P->ref);
   fprintf(stderr, "Target files (%u):\n", P->nTar);

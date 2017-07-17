@@ -82,9 +82,8 @@ refNModels, INF *I){
 
   for(n = 0 ; n < P->nModels ; ++n){
     if(P->model[n].type == TARGET){
-      cModels[n] = CreateCModel(P->model[n].ctx, P->model[n].den, 
-      P->model[n].ir, TARGET, P->col, P->model[n].edits, P->model[n].eDen,
-      AL->cardinality);
+      cModels[n] = CreateCModel(P->model[n].ctx, P->model[n].den, TARGET, 
+      P->model[n].edits, P->model[n].eDen, AL->cardinality);
       }
     }
 
@@ -104,12 +103,10 @@ refNModels, INF *I){
   for(x = 0 ; x < AL->cardinality ; ++x)
     WriteNBits(AL->toChars[x],          8, Writter);
   WriteNBits((int) (P->gamma * 65536), 32, Writter);
-  WriteNBits(P->col,                   32, Writter);
   WriteNBits(P->nModels,               16, Writter);
   for(n = 0 ; n < P->nModels ; ++n){
     WriteNBits(cModels[n]->ctx,        16, Writter);
     WriteNBits(cModels[n]->alphaDen,   16, Writter);
-    WriteNBits(cModels[n]->ir,          1, Writter);
     WriteNBits(cModels[n]->edits,       8, Writter);
     WriteNBits(cModels[n]->SUBS.eDen,  32, Writter);
     WriteNBits(P->model[n].type,        1, Writter);
@@ -121,7 +118,7 @@ refNModels, INF *I){
     for(idxPos = 0 ; idxPos < k ; ++idxPos){
 
       #ifdef PROGRESS
-      if(size > 100) CalcProgress(size, ++i);
+      CalcProgress(size, ++i);
       #endif
 
       symBuf->buf[symBuf->idx] = sym = AL->revMap[ readerBuffer[idxPos] ];
@@ -225,15 +222,15 @@ refNModels, INF *I){
 //////////////////////////////////////////////////////////////////////////////
 // - - - - - - - - - - - - - - - - R E F E R E N C E - - - - - - - - - - - - -
 
-CModel **LoadReference(Parameters *P)
-  {
+CModel **LoadReference(Parameters *P){
   FILE      *Reader = Fopen(P->ref, "r");
   uint32_t  n, k, idxPos;
   uint64_t  nBases = 0;
   int32_t   idx = 0;
-  uint8_t   *readerBuffer, *symbolBuffer, sym, irSym, type = 0, header = 1, 
-            line = 0, dna = 0;
+  uint8_t   *readerBuffer, sym;
+  CBUF      *symBuf = CreateCBuffer(BUFFER_SIZE, BGUARD);
   CModel    **cModels;
+  
   #ifdef PROGRESS
   uint64_t  i = 0;
   #endif
@@ -247,68 +244,31 @@ CModel **LoadReference(Parameters *P)
   PrintAlphabet(AL);
 
   readerBuffer  = (uint8_t *) Calloc(BUFFER_SIZE + 1, sizeof(uint8_t));
-  symbolBuffer  = (uint8_t *) Calloc(BUFFER_SIZE + BGUARD+1, sizeof(uint8_t));
-  symbolBuffer += BGUARD;
   cModels       = (CModel **) Malloc(P->nModels * sizeof(CModel *)); 
   for(n = 0 ; n < P->nModels ; ++n)
     if(P->model[n].type == REFERENCE)
-      cModels[n] = CreateCModel(P->model[n].ctx, P->model[n].den, 
-      P->model[n].ir, REFERENCE, P->col, P->model[n].edits, P->model[n].eDen, AL->cardinality);
+      cModels[n] = CreateCModel(P->model[n].ctx, P->model[n].den, REFERENCE, 
+      P->model[n].edits, P->model[n].eDen, AL->cardinality);
 
-  sym = fgetc(Reader);
-  switch(sym){ 
-    case '>': type = 1; break;
-    case '@': type = 2; break;
-    default : type = 0;
-    }
-  rewind(Reader);
-
-  switch(type){
-    case 1:  nBases = NDNASymInFasta(Reader); break;
-    case 2:  nBases = NDNASymInFastq(Reader); break;
-    default: nBases = NDNASyminFile (Reader); break;
-    }
+  nBases = NDNASyminFile(Reader);
 
   P->checksum = 0;
   while((k = fread(readerBuffer, 1, BUFFER_SIZE, Reader)))
     for(idxPos = 0 ; idxPos < k ; ++idxPos){
 
-      sym = readerBuffer[idxPos];
-      if(type == 1){  // IS A FAST[A] FILE
-        if(sym == '>'){ header = 1; continue; }
-        if(sym == '\n' && header == 1){ header = 0; continue; }
-        if(sym == '\n') continue;
-        if(header == 1) continue;
-        }
-      else if(type == 2){ // IS A FAST[Q] FILE
-        switch(line){
-          case 0: if(sym == '\n'){ line = 1; dna = 1; } break;
-          case 1: if(sym == '\n'){ line = 2; dna = 0; } break;
-          case 2: if(sym == '\n'){ line = 3; dna = 0; } break;
-          case 3: if(sym == '\n'){ line = 0; dna = 0; } break;
-          }
-        if(dna == 0 || sym == '\n') continue;
-        }
-
-      // FINAL FILTERING DNA CONTENT
-      if(sym != 'A' && sym != 'C' && sym != 'G' && sym != 'T')
-        continue;
-
-      symbolBuffer[idx] = sym = DNASymToNum(sym);
+      symBuf->buf[symBuf->idx] = sym = readerBuffer[idxPos];
       P->checksum = (P->checksum + (uint8_t) sym);
 
       for(n = 0 ; n < P->nModels ; ++n)
         if(P->model[n].type == REFERENCE){
-          GetPModelIdx(symbolBuffer+idx-1, cModels[n]);
+          GetPModelIdx(symBuf->buf+symBuf->idx-1, cModels[n]);
           UpdateCModelCounter(cModels[n], sym, cModels[n]->pModelIdx);
           }
 
-      if(++idx == BUFFER_SIZE){
-        memcpy(symbolBuffer - BGUARD, symbolBuffer + idx - BGUARD, BGUARD);
-        idx = 0;
-        }
+      UpdateCBuffer(symBuf);
+
       #ifdef PROGRESS
-      if(nBases > 100) CalcProgress(nBases, ++i);
+      CalcProgress(nBases, ++i);
       #endif
       }
  
@@ -317,7 +277,8 @@ CModel **LoadReference(Parameters *P)
     if(P->model[n].type == REFERENCE)
       ResetCModelIdx(cModels[n]);
   Free(readerBuffer);
-  Free(symbolBuffer-BGUARD);
+  RemoveCBuffer(symBuf);
+  RemoveAlphabet(AL);
   fclose(Reader);
 
   if(P->verbose == 1)
@@ -337,7 +298,7 @@ int32_t main(int argc, char *argv[]){
   char        **p = *&argv, **xargv, *xpl = NULL;
   CModel      **refModels;
   int32_t     xargc = 0, cardinality = 1;
-  uint32_t    n, k, refNModels, col;
+  uint32_t    n, k, refNModels;
   uint64_t    totalBytes, headerBytes, totalSize;
   clock_t     stop = 0, start = clock();
   double      gamma;
@@ -418,12 +379,6 @@ int32_t main(int argc, char *argv[]){
     if(strcmp(xargv[n], "-g") == 0) 
       gamma = atof(xargv[n+1]);
 
-  col = MAX_COLLISIONS;
-  for(n = 1 ; n < xargc ; ++n) 
-    if(strcmp(xargv[n], "-c") == 0) 
-      col = atoi(xargv[n+1]);
-
-  P->col      = ArgsNum    (col,   p, argc, "-c", 1, 10000);
   P->gamma    = ArgsDouble (gamma, p, argc, "-g");
   P->gamma    = ((int)(P->gamma * 65536)) / 65536.0;
   P->ref      = ArgsString (NULL, p, argc, "-r");

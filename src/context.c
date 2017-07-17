@@ -140,8 +140,7 @@ void UpdateCModelCounter(CModel *M, U32 sym, U64 im){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-CModel *CreateCModel(U32 ctx, U32 aDen, U32 ir, U8 ref, U32 col, U32 edits, 
-U32 eDen, U32 nSym){
+CModel *CreateCModel(U32 ctx, U32 aDen, U8 ref, U32 edits, U32 eDen, U32 nSym){
   CModel *M = (CModel *) Calloc(1, sizeof(CModel));
   U64    prod = 1, *mult;
   U32    n;
@@ -159,7 +158,6 @@ U32 eDen, U32 nSym){
   M->alphaDen    = aDen;
   M->edits       = edits;
   M->pModelIdx   = 0;
-  M->ir          = ir  == 0 ? 0 : 1;
   M->ref         = ref == 0 ? 0 : 1;
 
   if((ULL)(M->nPModels) * M->nSym * sizeof(ACC) >> 20 > MAX_ARRAY_MEMORY){
