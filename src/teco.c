@@ -210,7 +210,7 @@ CModel **LoadReference(Parameters *P){
   #endif
 
   if(P->verbose == 1)
-    fprintf(stdout, "Building reference model ...\n");
+    fprintf(stderr, "Building reference model ...\n");
 
   // BUILD ALPHABET
   ALPHABET *AL = CreateAlphabet();
@@ -256,9 +256,9 @@ CModel **LoadReference(Parameters *P){
   fclose(Reader);
 
   if(P->verbose == 1)
-    fprintf(stdout, "Done!                          \n");  // SPACES ARE VALID  
+    fprintf(stderr, "Done!                          \n");  // SPACES ARE VALID  
   else
-    fprintf(stdout, "                               \n");  // SPACES ARE VALID
+    fprintf(stderr, "                               \n");  // SPACES ARE VALID
 
   return cModels;
   }
