@@ -89,7 +89,7 @@ refNModels, INF *I){
 
   if(P->verbose){
     fprintf(stderr, "Done!\n");
-    fprintf(stderr, "Compressing target sequence %d [%"PRIu64"] ...\n", 
+    fprintf(stderr, "Compressing target sequence %d [%"PRIu64" symbols] ...\n", 
     id + 1, size);
     }
 
