@@ -81,7 +81,7 @@ static void InsertKey(HashTable *H, U32 hi, U64 key, U8 s){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 static HCC *GetHCCounters(HashTable *H, U64 key){
- uint64_t n, hi = key % H->size;              //The hash index
+ uint64_t n, hi = ZHASH(key) % H->size;              //The hash index
 
  for(n = 0 ; n < H->entrySize[hi] ; ++n)
    if(H->entries[hi][n].key == key)     // If key found
@@ -112,7 +112,7 @@ void UpdateCModelCounter(CModel *M, U32 sym, U64 im){
   U32 n;
   ACC *AC;
   U64 idx = im;
-  idx = M->pModelIdx;
+  idx = ZHASH(M->pModelIdx);
 
   if(M->mode == HASH_TABLE_MODE){
     uint64_t s;
