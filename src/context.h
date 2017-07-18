@@ -10,9 +10,6 @@
 #define HASH_TABLE_BEGIN_CTX  15
 //#define HASH_SIZE             33554471
 #define HASH_SIZE             16777259
-//#define HASH_SIZE             67108879
-//#define HASH_SIZE             268435459
-#define MAX_COLLISIONS        10
 
 #if defined(PREC32B)
   #define MAX_HASH_CTX        28 
@@ -28,7 +25,6 @@
 typedef U16  ACC;                  // Size of context counters for arrays
 typedef U8   HCC;                // Size of context counters for hash tables
 typedef U8   ENTMAX;                // Entry size (nKeys for each hIndex)
-typedef HCC  HCCounters[4];
 
 typedef struct{
   uint64_t  key;            //The key stored in this entry 
