@@ -9,6 +9,12 @@
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 typedef struct {
+  uint32_t size;
+  uint64_t *positions;
+  }
+POSITIONS;
+
+typedef struct {
   uint8_t    *numeric;    // Symbols in numbers (20213413...) from file
   uint8_t    *toChars;    // chars: { 'A', 'C', 'G', 'T', 'N', ...}
   uint8_t    *revMap;     // Reverse symbols to numbers
@@ -19,7 +25,7 @@ typedef struct {
   uint32_t   low;         // low frequent symbol threshold
   uint32_t   nLow;        // number below low
   uint8_t    *lowAlpha;   // lowChars
-  uint64_t   **positions; // positions of Low chars
+  POSITIONS  *posAlpha; // positions of Low chars
   int        cardinality;
   }
 ALPHABET;
@@ -29,6 +35,7 @@ ALPHABET;
 ALPHABET   *CreateAlphabet            (uint32_t);
 void       LoadAlphabet               (ALPHABET *, FILE *);
 void       PrintAlphabet              (ALPHABET *);
+void       PrintPositions             (ALPHABET *);
 void       AdaptAlphabetNonFrequent   (ALPHABET *, FILE *);
 void       RemoveAlphabet             (ALPHABET *);
 

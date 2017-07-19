@@ -61,6 +61,7 @@ refNModels, INF *I){
 
   // ADAPT ALPHABET FOR NON FREQUENT SYMBOLS
   AdaptAlphabetNonFrequent(AL, Reader);
+  PrintPositions(AL);
   
   // EXTRA MODELS DERIVED FROM EDITS
   totModels = P->nModels;

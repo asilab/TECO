@@ -83,11 +83,25 @@ void PrintAlphabet(ALPHABET *A){
     }
   }
 
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// PRINT POSITIONS
+//
+void PrintPositions(ALPHABET *A){
+  uint32_t x, y;
+  for(x = 0 ; x < A->nLow ; ++x){
+    fprintf(stderr, "%3d : ", A->lowAlpha[x]);
+    for(y = 0 ; y < A->posAlpha[x].size ; ++y){
+      fprintf(stderr, "%"PRIu64", ", A->posAlpha[x].positions[y]);
+      }
+    }
+  }
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // ADAPT ALPHABET
 //
 void AdaptAlphabetNonFrequent(ALPHABET *A, FILE *F){
-  uint32_t x;
+  uint32_t x, y;
 
   for(x = 0 ; x < A->cardinality ; ++x){
     int id = (int) A->toChars[x];
@@ -97,7 +111,7 @@ void AdaptAlphabetNonFrequent(ALPHABET *A, FILE *F){
       }
     }
 
-  fprintf(stderr, "\nLow symbols numb  : %u\n", A->nLow);
+  fprintf(stderr, "\nLow symbols numb : %u\n", A->nLow);
   fprintf(stderr, "Low frequent sym : \n");
   for(x = 0 ; x < A->cardinality ; ++x){
     int id = (int) A->toChars[x];
@@ -109,16 +123,33 @@ void AdaptAlphabetNonFrequent(ALPHABET *A, FILE *F){
   uint8_t *buffer;
   int32_t k;
 
-  buffer = (uint8_t *) Calloc(BUFFER_SIZE, sizeof(uint8_t));
-  while((k = fread(buffer, 1, BUFFER_SIZE, F)))
-    for(x = 0 ; x < k ; ++x){
-      
-     ; 
+  if(A->nLow > 0){
+    A->posAlpha = (POSITIONS *) Calloc(A->nLow, sizeof(POSITIONS));
+    for(x = 0 ; x < A->nLow ; ++x)
+      A->posAlpha[x].positions = (uint64_t *) Calloc(1, sizeof(uint64_t));
 
-      }
-  Free(buffer);
+    uint64_t idx = 0;
+    buffer = (uint8_t *) Calloc(BUFFER_SIZE, sizeof(uint8_t));
+    while((k = fread(buffer, 1, BUFFER_SIZE, F)))
+      for(x = 0 ; x < k ; ++x){
 
-  rewind(F);
+        for(y = 0 ; y < A->nLow ; ++y){
+          if((int) buffer[x] == (int) A->lowAlpha[y]){
+            A->posAlpha[y].size++;
+            A->posAlpha[y].positions = (uint64_t *) Realloc(A->posAlpha[y].positions, 
+                                        A->posAlpha[y].size, sizeof(uint64_t));
+            A->posAlpha[y].positions[A->posAlpha[y].size-1] = idx;
+            break;
+            }
+          }
+
+        ++idx;
+        }
+
+    Free(buffer);
+    rewind(F);
+    }
+  
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -130,7 +161,13 @@ void RemoveAlphabet(ALPHABET *A){
   Free(A->revMap);
   Free(A->alphabet);
   Free(A->mask);
-  Free(A->lowAlpha);
+  if(A->nLow > 0){
+    uint32_t x;
+    Free(A->lowAlpha);
+    for(x = 0 ; x < A->nLow ; ++x)
+      Free(A->posAlpha[x].positions);
+    Free(A->posAlpha);
+    }
   Free(A);
   }
 
