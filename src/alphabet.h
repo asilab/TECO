@@ -15,16 +15,18 @@ typedef struct {
   uint8_t    *alphabet;
   uint8_t    *mask;       // binary vector with symbol existing or not
   uint64_t   *counts;     // counts for symbol distribution
+  uint64_t   *length;     // total size of the symbols
   int        cardinality;
   }
 ALPHABET;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-ALPHABET   *CreateAlphabet   (void);
-void       LoadAlphabet      (ALPHABET *, FILE *);
-void       PrintAlphabet     (ALPHABET *);
-void       RemoveAlphabet    (ALPHABET *);
+ALPHABET   *CreateAlphabet            (void);
+void       LoadAlphabet               (ALPHABET *, FILE *);
+void       PrintAlphabet              (ALPHABET *);
+void       AdaptAlphabetNonFrequent   (ALPHABET *);
+void       RemoveAlphabet             (ALPHABET *);
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 

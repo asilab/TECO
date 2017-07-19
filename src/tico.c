@@ -58,6 +58,9 @@ refNModels, INF *I){
   ALPHABET *AL = CreateAlphabet();
   LoadAlphabet(AL, Reader);
   PrintAlphabet(AL);
+
+  // ADAPT ALPHABET FOR NON FREQUENT SYMBOLS
+  AdaptAlphabetNonFrequent(AL);
   
   // EXTRA MODELS DERIVED FROM EDITS
   totModels = P->nModels;
@@ -99,6 +102,12 @@ refNModels, INF *I){
   WriteNBits(WATERMARK,                32, Writter);
   WriteNBits(P->checksum,              46, Writter);
   WriteNBits(size,                     46, Writter);
+
+  // PRE HEADER : NON FREQUENT SYMBOLS
+  
+
+  //
+
   WriteNBits(AL->cardinality,          16, Writter);
   for(x = 0 ; x < AL->cardinality ; ++x)
     WriteNBits(AL->toChars[x],          8, Writter);

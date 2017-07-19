@@ -13,6 +13,7 @@ ALPHABET *CreateAlphabet(void){
   A->alphabet    = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->mask        = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->counts      = (uint64_t *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint64_t));
+  A->length      = 0;
   A->cardinality = 0;
   return A;
   }
@@ -34,8 +35,7 @@ void LoadAlphabet(ALPHABET *A, FILE *F){
       ++size;
       }
   Free(buffer);
-
-  
+  A->length = size;
 
   A->cardinality = 0;
   for(x = 0 ; x < ALPHABET_MAX_SIZE ; x++){
@@ -55,6 +55,7 @@ void LoadAlphabet(ALPHABET *A, FILE *F){
 //
 void PrintAlphabet(ALPHABET *A){
   int x;
+  fprintf(stderr, "File size        : %"PRIu64"\n", A->length);
   fprintf(stderr, "Alphabet size    : %u\n", A->cardinality);
   fprintf(stderr, "Alphabet         : \n");
   for(x = 0 ; x < A->cardinality ; ++x){
@@ -71,6 +72,38 @@ void PrintAlphabet(ALPHABET *A){
       break;
       }
     }
+  }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// ADAPT ALPHABET
+//
+void AdaptAlphabetNonFrequent(ALPHABET *A){
+  uint32_t x;
+
+  for(x = 0 ; x < ALPHABET_MAX_SIZE ; ++x){
+    if(A->counts[x] < 100 && A->length > 1000000){
+      A->mask[x] = 2;
+      }
+    }
+
+  fprintf(stderr, "Low frequent sym : \n");
+  for(x = 0 ; x < ALPHABET_MAX_SIZE ; ++x){
+    if(A->mask[x] == 2){
+      switch(id){
+        case 9:
+          fprintf(stderr, "%3d :'\\t' ( %"PRIu64" )\n", id, A->counts[id]);
+        break;
+        case 10:
+          fprintf(stderr, "%3d :'\\n' ( %"PRIu64" )\n", id, A->counts[id]);
+        break;
+        default:
+          fprintf(stderr, "%3d :'%c' ( %"PRIu64" )\n", id, id, A->counts[id]);
+        break;
+        }
+      }
+    }
+  
+
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
