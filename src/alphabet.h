@@ -14,6 +14,7 @@ typedef struct {
   uint8_t    *revMap;     // Reverse symbols to numbers
   uint8_t    *alphabet;
   uint8_t    *mask;       // binary vector with symbol existing or not
+  uint64_t   *counts;     // counts for symbol distribution
   int        cardinality;
   }
 ALPHABET;

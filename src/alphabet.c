@@ -12,6 +12,7 @@ ALPHABET *CreateAlphabet(void){
   A->revMap      = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->alphabet    = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->mask        = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
+  A->counts      = (uint64_t *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint64_t));
   A->cardinality = 0;
   return A;
   }
@@ -20,15 +21,21 @@ ALPHABET *CreateAlphabet(void){
 // LOAD ALPHABET
 //
 void LoadAlphabet(ALPHABET *A, FILE *F){
+  uint64_t size = 0;
   uint32_t x;
   int32_t  k;
   uint8_t  *buffer;
 
   buffer = (uint8_t *) Calloc(BUFFER_SIZE, sizeof(uint8_t));
   while((k = fread(buffer, 1, BUFFER_SIZE, F)))
-    for(x = 0 ; x < k ; ++x)
+    for(x = 0 ; x < k ; ++x){
       A->mask[buffer[x]] = 1;
+      A->counts[buffer[x]]++;
+      ++size;
+      }
   Free(buffer);
+
+  
 
   A->cardinality = 0;
   for(x = 0 ; x < ALPHABET_MAX_SIZE ; x++){
@@ -50,11 +57,13 @@ void PrintAlphabet(ALPHABET *A){
   int x;
   fprintf(stderr, "Alphabet size    : %u\n", A->cardinality);
   fprintf(stderr, "Alphabet         : ");
-  for(x = 0 ; x < A->cardinality ; ++x)
-    fprintf(stderr, "%c", A->toChars[x]);
-  fprintf(stderr, "\nAlphabet numbers : ");
-  for(x = 0 ; x < A->cardinality ; ++x)
-    fprintf(stderr, "%d,", (int) A->toChars[x]);
+  for(x = 0 ; x < A->cardinality ; ++x){
+    int id = (int) A->toChars[x];
+    switch(id){
+      case 10: fprintf(stderr, "'\\n' (%d | %"PRIu64"), ", id, A->counts[id]); break;
+      default: fprintf(stderr, "'%c' (%d | %"PRIu64"), ", id, id, A->counts[id]); break;
+      }
+    }
   fprintf(stderr, "\n");
   }
 
