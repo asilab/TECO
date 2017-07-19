@@ -49,6 +49,7 @@ typedef struct{
   U32      watermark;
   double   gamma;
   U32      nModels;
+  U32      low;
   }
 Parameters;
 
@@ -72,6 +73,8 @@ U32 garbage;
 #define DEFAULT_LEVEL          5
 #define MAX_LEVEL              15
 #define MIN_LEVEL              1
+#define MAX_THRESHOLD          1000000
+#define MIN_THRESHOLD          1
 #define MAX_CTX                31
 #define MIN_CTX                1
 #define MAX_DEN                1000000

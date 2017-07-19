@@ -55,7 +55,7 @@ refNModels, INF *I){
   size = NBytesInFile(Reader);
 
   // BUILD ALPHABET
-  ALPHABET *AL = CreateAlphabet();
+  ALPHABET *AL = CreateAlphabet(P->low);
   LoadAlphabet(AL, Reader);
   PrintAlphabet(AL);
 
@@ -102,6 +102,7 @@ refNModels, INF *I){
   WriteNBits(WATERMARK,                32, Writter);
   WriteNBits(P->checksum,              46, Writter);
   WriteNBits(size,                     46, Writter);
+  WriteNBits(P->low,                   32, Writter);
 
   // PRE HEADER : NON FREQUENT SYMBOLS
   
@@ -248,7 +249,7 @@ CModel **LoadReference(Parameters *P){
     fprintf(stdout, "Building reference model ...\n");
 
   // BUILD ALPHABET
-  ALPHABET *AL = CreateAlphabet();
+  ALPHABET *AL = CreateAlphabet(P->low);
   LoadAlphabet(AL, Reader);
   PrintAlphabet(AL);
 
@@ -331,12 +332,13 @@ int32_t main(int argc, char *argv[]){
     return EXIT_SUCCESS;
     }
 
-  P->verbose  = ArgsState  (DEFAULT_VERBOSE, p, argc, "-v" );
-  P->force    = ArgsState  (DEFAULT_FORCE,   p, argc, "-f" );
-  P->estim    = ArgsState  (0,               p, argc, "-e" );
-  P->level    = ArgsNum    (0, p, argc, "-l", MIN_LEVEL, MAX_LEVEL);
+  P->verbose = ArgsState  (DEFAULT_VERBOSE, p, argc, "-v" );
+  P->force   = ArgsState  (DEFAULT_FORCE,   p, argc, "-f" );
+  P->estim   = ArgsState  (0,               p, argc, "-e" );
+  P->level   = ArgsNum    (0,   p, argc, "-l", MIN_LEVEL, MAX_LEVEL);
+  P->low     = ArgsNum    (200, p, argc, "-t", MIN_THRESHOLD, MAX_THRESHOLD);
 
-  P->nModels  = 0;
+  P->nModels = 0;
   for(n = 1 ; n < argc ; ++n)
     if(strcmp(argv[n], "-rm") == 0 || strcmp(argv[n], "-tm") == 0)
       P->nModels += 1;

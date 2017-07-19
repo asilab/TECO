@@ -16,13 +16,14 @@ typedef struct {
   uint8_t    *mask;       // binary vector with symbol existing or not
   uint64_t   *counts;     // counts for symbol distribution
   uint64_t   length;      // total size of the symbols
+  uint32_t   low;         // low frequent symbol threshold
   int        cardinality;
   }
 ALPHABET;
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-ALPHABET   *CreateAlphabet            (void);
+ALPHABET   *CreateAlphabet            (uint32_t);
 void       LoadAlphabet               (ALPHABET *, FILE *);
 void       PrintAlphabet              (ALPHABET *);
 void       AdaptAlphabetNonFrequent   (ALPHABET *);

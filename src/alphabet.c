@@ -24,7 +24,7 @@ void PrintID(ALPHABET *A, int id){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // CREATE ALPHABET
 //
-ALPHABET *CreateAlphabet(void){
+ALPHABET *CreateAlphabet(uint32_t low){
   ALPHABET *A    = (ALPHABET *) Calloc(1,                 sizeof(ALPHABET));
   A->numeric     = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->toChars     = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
@@ -32,6 +32,7 @@ ALPHABET *CreateAlphabet(void){
   A->alphabet    = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->mask        = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->counts      = (uint64_t *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint64_t));
+  A->low         = low;
   A->length      = 0;
   A->cardinality = 0;
   return A;
@@ -90,7 +91,7 @@ void AdaptAlphabetNonFrequent(ALPHABET *A){
 
   for(x = 0 ; x < A->cardinality ; ++x){
     int id = (int) A->toChars[x];
-    if(A->counts[id] < 100 && A->length > 1000000){
+    if(A->counts[id] < A->low && A->length > 1000000){
       A->mask[id] = 2;
       }
     }

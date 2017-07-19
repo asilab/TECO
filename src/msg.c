@@ -32,6 +32,7 @@ void PrintMenu(void){
   "  -V                     display version number,                       \n"
   "  -f                     force overwrite of output,                    \n"
   "  -l <level>             level of compression [1;5] (lazy -rm setup),  \n"
+  "  -t <threshold>         threshold frequency to discard from alphabet, \n"
   "  -g <gamma>             mixture decayment forgetting factor. It is    \n"
   "                         a real value in the interval [0;1),           \n");
   #ifdef ESTIMATE

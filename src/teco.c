@@ -39,14 +39,14 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
     fprintf(stderr, "Decompressing %"PRIu64" symbols of target %d ...\n", 
     P[id].size, id + 1);
 
-  ALPHABET *AL = CreateAlphabet();
-
   startinputtingbits();
   start_decode(Reader);
 
   P[id].watermark        = ReadNBits(32, Reader);
   garbage                = ReadNBits(46, Reader);
   P[id].size             = ReadNBits(46, Reader);
+  P[id].low              = ReadNBits(32, Reader);
+  ALPHABET *AL = CreateAlphabet(P[id].low);
   AL->cardinality        = ReadNBits(16, Reader);
   for(x = 0 ; x < 256 ; ++x)
     AL->revMap[x] = INVALID_SYMBOL;
@@ -213,7 +213,7 @@ CModel **LoadReference(Parameters *P){
     fprintf(stderr, "Building reference model ...\n");
 
   // BUILD ALPHABET
-  ALPHABET *AL = CreateAlphabet();
+  ALPHABET *AL = CreateAlphabet(P->low);
   LoadAlphabet(AL, Reader);
   PrintAlphabet(AL);
 
@@ -331,6 +331,7 @@ int32_t main(int argc, char *argv[]){
       }
     checksum[n]    = ReadNBits(46, Reader);
     P[n].size      = ReadNBits(46, Reader);
+    P[n].low       = ReadNBits(32, Reader);
     cardinality    = ReadNBits(16, Reader);
     for(k = 0 ; k < cardinality ; ++k)
       garbage      = ReadNBits(8,  Reader);
