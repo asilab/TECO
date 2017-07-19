@@ -110,12 +110,14 @@ refNModels, INF *I){
   for(x = 0 ; x < AL->nLow ; ++x){
     WriteNBits(AL->lowAlpha[x],         8, Writter);
     for(n = 0 ; n < AL->posAlpha[x].size ; ++n){
-      WriteNBits(AL->posAlpha[x].positions[n], 64, Writter);      
+      WriteNBits(AL->posAlpha[x].positions[n], 54, Writter);      
       }
     }
 
   // REMAP ALPHABET
   ResetAlphabet(AL);
+  PrintAlphabet(AL);
+  
 
   WriteNBits(AL->cardinality,          16, Writter);
   for(x = 0 ; x < AL->cardinality ; ++x)
