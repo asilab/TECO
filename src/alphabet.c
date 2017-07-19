@@ -94,6 +94,7 @@ void PrintPositions(ALPHABET *A){
     for(y = 0 ; y < A->posAlpha[x].size ; ++y){
       fprintf(stderr, "%"PRIu64", ", A->posAlpha[x].positions[y]);
       }
+    fprintf(stderr, "\n");
     }
   }
 
