@@ -80,7 +80,6 @@ refNModels, INF *I){
   readerBuffer  = (uint8_t *) Calloc(BUFFER_SIZE, sizeof(uint8_t));
   cModelWeight  = (double   *) Calloc(totModels, sizeof(double));
   
-
   for(n = 0 ; n < totModels ; ++n)
     cModelWeight[n] = 1.0 / totModels;
 
@@ -110,14 +109,13 @@ refNModels, INF *I){
   for(x = 0 ; x < AL->nLow ; ++x){
     WriteNBits(AL->lowAlpha[x],         8, Writter);
     for(n = 0 ; n < AL->posAlpha[x].size ; ++n){
-      WriteNBits(AL->posAlpha[x].positions[n], 54, Writter);      
+      WriteNBits(AL->posAlpha[x].positions[n], 46, Writter);      
       }
     }
 
   // REMAP ALPHABET
   ResetAlphabet(AL);
   PrintAlphabet(AL);
-  
 
   WriteNBits(AL->cardinality,          16, Writter);
   for(x = 0 ; x < AL->cardinality ; ++x)
@@ -142,7 +140,7 @@ refNModels, INF *I){
       #endif
 
       for(x = 0 ; x < AL->nLow ; ++x)
-        if((int) readerBuffer[idxPos] == (int) AL->lowAlpha[x]){
+        if((int) readerBuffer[idxPos] == (int) AL->lowAlpha[AL->revMapLowAlpha[x]]){
           ++compressed;
           continue;
           }

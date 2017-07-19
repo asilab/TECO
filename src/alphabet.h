@@ -15,17 +15,18 @@ typedef struct {
 POSITIONS;
 
 typedef struct {
-  uint8_t    *numeric;    // Symbols in numbers (20213413...) from file
-  uint8_t    *toChars;    // chars: { 'A', 'C', 'G', 'T', 'N', ...}
-  uint8_t    *revMap;     // Reverse symbols to numbers
+  uint8_t    *numeric;        // Symbols in numbers (20213413...) from file
+  uint8_t    *toChars;        // chars: { 'A', 'C', 'G', 'T', 'N', ...}
+  uint8_t    *revMap;         // Reverse symbols to numbers
   uint8_t    *alphabet;
-  uint8_t    *mask;       // binary vector with symbol existing or not
-  uint64_t   *counts;     // counts for symbol distribution
-  uint64_t   length;      // total size of the symbols
-  uint32_t   low;         // low frequent symbol threshold
-  uint32_t   nLow;        // number below low
-  uint8_t    *lowAlpha;   // lowChars
-  POSITIONS  *posAlpha; // positions of Low chars
+  uint8_t    *mask;           // binary vector with symbol existing or not
+  uint64_t   *counts;         // counts for symbol distribution
+  uint64_t   length;          // total size of the symbols
+  uint32_t   low;             // low frequent symbol threshold
+  uint32_t   nLow;            // number below low
+  uint8_t    *lowAlpha;       // lowChars
+  uint8_t    *revMapLowAlpha; // lowChars
+  POSITIONS  *posAlpha;       // positions of Low chars
   int        cardinality;
   }
 ALPHABET;
