@@ -137,7 +137,8 @@ void AdaptAlphabetNonFrequent(ALPHABET *A, FILE *F){
           if((int) buffer[x] == (int) A->lowAlpha[y]){
             A->posAlpha[y].size++;
             A->posAlpha[y].positions = (uint64_t *) Realloc(A->posAlpha[y].positions, 
-                                        A->posAlpha[y].size, sizeof(uint64_t));
+                                       A->posAlpha[y].size * sizeof(uint64_t), 
+                                       sizeof(uint64_t));
             A->posAlpha[y].positions[A->posAlpha[y].size-1] = idx;
             break;
             }
