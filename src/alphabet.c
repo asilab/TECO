@@ -56,12 +56,13 @@ void LoadAlphabet(ALPHABET *A, FILE *F){
 void PrintAlphabet(ALPHABET *A){
   int x;
   fprintf(stderr, "Alphabet size    : %u\n", A->cardinality);
-  fprintf(stderr, "Alphabet         : ");
+  fprintf(stderr, "Alphabet         : \n");
   for(x = 0 ; x < A->cardinality ; ++x){
     int id = (int) A->toChars[x];
     switch(id){
-      case 10: fprintf(stderr, "'\\n' (%d | %"PRIu64")\n", id, A->counts[id]); break;
-      default: fprintf(stderr, "'%c' (%d | %"PRIu64")\n", id, id, A->counts[id]); break;
+      case 9:  fprintf(stderr, "%3d :'\\t' (%"PRIu64")\n", id, A->counts[id]); break;
+      case 10: fprintf(stderr, "%3d :'\\n' (%"PRIu64")\n", id, A->counts[id]); break;
+      default: fprintf(stderr, "%3d :'%c' (%"PRIu64")\n", id, id, A->counts[id]); break;
       }
     }
   }
