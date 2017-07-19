@@ -60,9 +60,15 @@ void PrintAlphabet(ALPHABET *A){
   for(x = 0 ; x < A->cardinality ; ++x){
     int id = (int) A->toChars[x];
     switch(id){
-      case 9:  fprintf(stderr, "%3d :'\\t' (%"PRIu64")\n", id, A->counts[id]); break;
-      case 10: fprintf(stderr, "%3d :'\\n' (%"PRIu64")\n", id, A->counts[id]); break;
-      default: fprintf(stderr, "%3d :'%c' (%"PRIu64")\n", id, id, A->counts[id]); break;
+      case 9:  
+        fprintf(stderr, "%3d :'\\t' ( %"PRIu64" )\n", id, A->counts[id]); 
+      break;
+      case 10: 
+        fprintf(stderr, "%3d :'\\n' ( %"PRIu64" )\n", id, A->counts[id]); 
+      break;
+      default: 
+        fprintf(stderr, "%3d :'%c' ( %"PRIu64" )\n", id, id, A->counts[id]); 
+      break;
       }
     }
   }
