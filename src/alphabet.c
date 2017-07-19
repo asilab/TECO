@@ -97,7 +97,7 @@ void AdaptAlphabetNonFrequent(ALPHABET *A, FILE *F){
       }
     }
 
-  fprintf(stderr, "\nLow symbols    : %u\n", A->nLow);
+  fprintf(stderr, "\nLow symbols numb  : %u\n", A->nLow);
   fprintf(stderr, "Low frequent sym : \n");
   for(x = 0 ; x < A->cardinality ; ++x){
     int id = (int) A->toChars[x];
