@@ -15,7 +15,7 @@ typedef struct {
   uint8_t    *alphabet;
   uint8_t    *mask;       // binary vector with symbol existing or not
   uint64_t   *counts;     // counts for symbol distribution
-  uint64_t   *length;     // total size of the symbols
+  uint64_t   length;      // total size of the symbols
   int        cardinality;
   }
 ALPHABET;
