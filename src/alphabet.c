@@ -2,6 +2,25 @@
 #include "alphabet.h"
 #include "mem.h"
 
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// PrintID
+//
+void PrintID(ALPHABET *A, int id){
+  switch(id){
+    case 9:
+      fprintf(stderr, "%3d :'\\t' ( %"PRIu64" )\n", id, A->counts[id]);
+    break;
+    case 10:
+      fprintf(stderr, "%3d :'\\n' ( %"PRIu64" )\n", id, A->counts[id]);
+    break;
+    default:
+      fprintf(stderr, "%3d :'%c' ( %"PRIu64" )\n", id, id, A->counts[id]);
+    break;
+    }
+  }
+
+
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // CREATE ALPHABET
 //
@@ -59,18 +78,7 @@ void PrintAlphabet(ALPHABET *A){
   fprintf(stderr, "Alphabet size    : %u\n", A->cardinality);
   fprintf(stderr, "Alphabet         : \n");
   for(x = 0 ; x < A->cardinality ; ++x){
-    int id = (int) A->toChars[x];
-    switch(id){
-      case 9:  
-        fprintf(stderr, "%3d :'\\t' ( %"PRIu64" )\n", id, A->counts[id]); 
-      break;
-      case 10: 
-        fprintf(stderr, "%3d :'\\n' ( %"PRIu64" )\n", id, A->counts[id]); 
-      break;
-      default: 
-        fprintf(stderr, "%3d :'%c' ( %"PRIu64" )\n", id, id, A->counts[id]); 
-      break;
-      }
+    PrintID(A, (int) A->toChars[x]);
     }
   }
 
@@ -91,20 +99,9 @@ void AdaptAlphabetNonFrequent(ALPHABET *A){
   for(x = 0 ; x < A->cardinality ; ++x){
     int id = (int) A->toChars[x];
     if(A->mask[id] == 2){
-      switch(id){
-        case 9:
-          fprintf(stderr, "%3d :'\\t' ( %"PRIu64" )\n", id, A->counts[id]);
-        break;
-        case 10:
-          fprintf(stderr, "%3d :'\\n' ( %"PRIu64" )\n", id, A->counts[id]);
-        break;
-        default:
-          fprintf(stderr, "%3d :'%c' ( %"PRIu64" )\n", id, id, A->counts[id]);
-        break;
-        }
+      PrintID(A, id);
       }
     }
-  
 
   }
 
