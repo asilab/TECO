@@ -39,7 +39,7 @@ void LoadAlphabet(ALPHABET *A, FILE *F){
 
   A->cardinality = 0;
   for(x = 0 ; x < ALPHABET_MAX_SIZE ; x++){
-    if(A->mask[x]){
+    if(A->mask[x] == 1){
       A->toChars[A->cardinality] = x;
       A->revMap[x] = A->cardinality++;
       }      
@@ -80,16 +80,17 @@ void PrintAlphabet(ALPHABET *A){
 void AdaptAlphabetNonFrequent(ALPHABET *A){
   uint32_t x;
 
-  for(x = 0 ; x < ALPHABET_MAX_SIZE ; ++x){
-    if(A->counts[x] < 100 && A->length > 1000000){
-      A->mask[x] = 2;
+  for(x = 0 ; x < A->cardinality ; ++x){
+    int id = (int) A->toChars[x];
+    if(A->counts[id] < 100 && A->length > 1000000){
+      A->mask[id] = 2;
       }
     }
 
-  fprintf(stderr, "Low frequent sym : \n");
-  for(x = 0 ; x < ALPHABET_MAX_SIZE ; ++x){
-    if(A->mask[x] == 2){
-      int id = (int) A->toChars[x];
+  fprintf(stderr, "\nLow frequent sym : \n");
+  for(x = 0 ; x < A->cardinality ; ++x){
+    int id = (int) A->toChars[x];
+    if(A->mask[id] == 2){
       switch(id){
         case 9:
           fprintf(stderr, "%3d :'\\t' ( %"PRIu64" )\n", id, A->counts[id]);
