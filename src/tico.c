@@ -140,7 +140,7 @@ refNModels, INF *I){
       #endif
 
       for(x = 0 ; x < AL->nLow ; ++x)
-        if((int) readerBuffer[idxPos] == (int) AL->toCharsLowAlpha[x]){
+        if((int) readerBuffer[idxPos] == (int) AL->lowAlpha[AL->toCharsLowAlpha[x]]){
           ++compressed;
           continue;
           }
