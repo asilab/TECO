@@ -89,6 +89,7 @@ void AdaptAlphabetNonFrequent(ALPHABET *A){
   fprintf(stderr, "Low frequent sym : \n");
   for(x = 0 ; x < ALPHABET_MAX_SIZE ; ++x){
     if(A->mask[x] == 2){
+      int id = (int) A->toChars[x];
       switch(id){
         case 9:
           fprintf(stderr, "%3d :'\\t' ( %"PRIu64" )\n", id, A->counts[id]);
