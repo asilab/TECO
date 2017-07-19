@@ -103,15 +103,19 @@ refNModels, INF *I){
   WriteNBits(WATERMARK,                32, Writter);
   WriteNBits(P->checksum,              46, Writter);
   WriteNBits(size,                     46, Writter);
-  WriteNBits(P->low,                   32, Writter);
 
   // PRE HEADER : NON FREQUENT SYMBOLS
-  WriteNBits(AL->nLow,                  8, Writter);
+  WriteNBits(P->low,                   32, Writter);
+  WriteNBits(AL->nLow,                 32, Writter);
   for(x = 0 ; x < AL->nLow ; ++x){
-    
+    WriteNBits(AL->lowAlpha[x],         8, Writter);
+    for(n = 0 ; n < AL->posAlpha[x].size ; ++n){
+      WriteNBits(AL->posAlpha[x].positions[n], 64, Writter);      
+      }
     }
 
-  //
+  // REMAP ALPHABET
+  ResetAlphabet(AL);
 
   WriteNBits(AL->cardinality,          16, Writter);
   for(x = 0 ; x < AL->cardinality ; ++x)
@@ -134,6 +138,12 @@ refNModels, INF *I){
       #ifdef PROGRESS
       CalcProgress(size, ++i);
       #endif
+
+      for(x = 0 ; x < AL->nLow ; ++x)
+        if((int) readerBuffer[idxPos] == (int) AL->lowAlpha[x]){
+          ++compressed;
+          continue;
+          }
 
       symBuf->buf[symBuf->idx] = sym = AL->revMap[ readerBuffer[idxPos] ];
       memset((void *)PT->freqs, 0, AL->cardinality * sizeof(double));

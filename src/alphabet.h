@@ -33,6 +33,7 @@ ALPHABET;
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ALPHABET   *CreateAlphabet            (uint32_t);
+void       ResetAlphabet              (ALPHABET *);
 void       LoadAlphabet               (ALPHABET *, FILE *);
 void       PrintAlphabet              (ALPHABET *);
 void       PrintPositions             (ALPHABET *);

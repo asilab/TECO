@@ -39,6 +39,22 @@ ALPHABET *CreateAlphabet(uint32_t low){
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// RESET ALPHABET
+//
+void ResetAlphabet(ALPHABET *A){
+  uint32_t x;
+  A->cardinality = 0;
+  for(x = 0 ; x < ALPHABET_MAX_SIZE ; x++){
+    if(A->mask[x] == 1){
+      A->toChars[A->cardinality] = x;
+      A->revMap[x] = A->cardinality++;
+      }
+    else
+      A->revMap[x] = INVALID_SYMBOL;
+    }
+  }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // LOAD ALPHABET
 //
 void LoadAlphabet(ALPHABET *A, FILE *F){
@@ -57,15 +73,7 @@ void LoadAlphabet(ALPHABET *A, FILE *F){
   Free(buffer);
   A->length = size;
 
-  A->cardinality = 0;
-  for(x = 0 ; x < ALPHABET_MAX_SIZE ; x++){
-    if(A->mask[x] == 1){
-      A->toChars[A->cardinality] = x;
-      A->revMap[x] = A->cardinality++;
-      }      
-    else 
-      A->revMap[x] = INVALID_SYMBOL;
-    }
+  ResetAlphabet(A);
 
   rewind(F);
   }
