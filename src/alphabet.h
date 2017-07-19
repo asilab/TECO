@@ -17,6 +17,9 @@ typedef struct {
   uint64_t   *counts;     // counts for symbol distribution
   uint64_t   length;      // total size of the symbols
   uint32_t   low;         // low frequent symbol threshold
+  uint32_t   nLow;        // number below low
+  uint8_t    *lowAlpha;   // lowChars
+  uint64_t   **positions; // positions of Low chars
   int        cardinality;
   }
 ALPHABET;
@@ -26,7 +29,7 @@ ALPHABET;
 ALPHABET   *CreateAlphabet            (uint32_t);
 void       LoadAlphabet               (ALPHABET *, FILE *);
 void       PrintAlphabet              (ALPHABET *);
-void       AdaptAlphabetNonFrequent   (ALPHABET *);
+void       AdaptAlphabetNonFrequent   (ALPHABET *, FILE *);
 void       RemoveAlphabet             (ALPHABET *);
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

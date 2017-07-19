@@ -60,7 +60,7 @@ refNModels, INF *I){
   PrintAlphabet(AL);
 
   // ADAPT ALPHABET FOR NON FREQUENT SYMBOLS
-  AdaptAlphabetNonFrequent(AL);
+  AdaptAlphabetNonFrequent(AL, Reader);
   
   // EXTRA MODELS DERIVED FROM EDITS
   totModels = P->nModels;
@@ -105,7 +105,10 @@ refNModels, INF *I){
   WriteNBits(P->low,                   32, Writter);
 
   // PRE HEADER : NON FREQUENT SYMBOLS
-  
+  WriteNBits(AL->nLow,                  8, Writter);
+  for(x = 0 ; x < AL->nLow ; ++x){
+    
+    }
 
   //
 

@@ -2,7 +2,6 @@
 #include "alphabet.h"
 #include "mem.h"
 
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // PrintID
 //
@@ -20,7 +19,6 @@ void PrintID(ALPHABET *A, int id){
     }
   }
 
-
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // CREATE ALPHABET
 //
@@ -31,8 +29,10 @@ ALPHABET *CreateAlphabet(uint32_t low){
   A->revMap      = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->alphabet    = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->mask        = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
+  A->lowAlpha    = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->counts      = (uint64_t *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint64_t));
   A->low         = low;
+  A->nLow        = 0;
   A->length      = 0;
   A->cardinality = 0;
   return A;
@@ -86,17 +86,19 @@ void PrintAlphabet(ALPHABET *A){
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // ADAPT ALPHABET
 //
-void AdaptAlphabetNonFrequent(ALPHABET *A){
+void AdaptAlphabetNonFrequent(ALPHABET *A, FILE *F){
   uint32_t x;
 
   for(x = 0 ; x < A->cardinality ; ++x){
     int id = (int) A->toChars[x];
-    if(A->counts[id] < A->low && A->length > 1000000){
+    if(A->counts[id] < A->low && A->length > 1000){
       A->mask[id] = 2;
+      A->lowAlpha[A->nLow++] = id;
       }
     }
 
-  fprintf(stderr, "\nLow frequent sym : \n");
+  fprintf(stderr, "\nLow symbols    : %u\n", A->nLow);
+  fprintf(stderr, "Low frequent sym : \n");
   for(x = 0 ; x < A->cardinality ; ++x){
     int id = (int) A->toChars[x];
     if(A->mask[id] == 2){
@@ -104,6 +106,19 @@ void AdaptAlphabetNonFrequent(ALPHABET *A){
       }
     }
 
+  uint8_t *buffer;
+  int32_t k;
+
+  buffer = (uint8_t *) Calloc(BUFFER_SIZE, sizeof(uint8_t));
+  while((k = fread(buffer, 1, BUFFER_SIZE, F)))
+    for(x = 0 ; x < k ; ++x){
+      
+     ; 
+
+      }
+  Free(buffer);
+
+  rewind(F);
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -115,6 +130,7 @@ void RemoveAlphabet(ALPHABET *A){
   Free(A->revMap);
   Free(A->alphabet);
   Free(A->mask);
+  Free(A->lowAlpha);
   Free(A);
   }
 
