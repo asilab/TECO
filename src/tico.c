@@ -139,11 +139,21 @@ refNModels, INF *I){
       CalcProgress(size, ++i);
       #endif
 
-      for(x = 0 ; x < AL->nLow ; ++x)
+
+      uint8_t ss = (int) readerBuffer[idxPos];
+      if(ss == 200 || ss == 205 || ss == 212 || ss == 220 || ss == 222 || ss == 240){
+        ++compressed;
+        continue;
+        }
+
+/*
+      for(x = 0 ; x < AL->nLow ; ++x){
         if((int) readerBuffer[idxPos] == (int) AL->lowAlpha[AL->toCharsLowAlpha[x]]){
           ++compressed;
           continue;
           }
+        }
+*/
 
       symBuf->buf[symBuf->idx] = sym = AL->revMap[ readerBuffer[idxPos] ];
       memset((void *)PT->freqs, 0, AL->cardinality * sizeof(double));
