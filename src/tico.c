@@ -130,6 +130,10 @@ refNModels, INF *I){
     WriteNBits(P->model[n].type,        1, Writter);
     }
 
+for(x = 0 ; x < AL->nLow ; ++x){
+  fprintf(stderr, "xxx %d\n", (int) AL->lowAlpha[x]);
+  }
+
   I[id].header = _bytes_output;
 
   while((k = fread(readerBuffer, 1, BUFFER_SIZE, Reader)))
@@ -146,14 +150,13 @@ refNModels, INF *I){
         continue;
         }
 */
-/*
+
       for(x = 0 ; x < AL->nLow ; ++x){
-        if((int) readerBuffer[idxPos] == (int) AL->lowAlpha[AL->toCharsLowAlpha[x]]){
+        if((int) readerBuffer[idxPos] == (int) AL->lowAlpha[x]){
           ++compressed;
           continue;
           }
         }
-*/
 
       symBuf->buf[symBuf->idx] = sym = AL->revMap[ readerBuffer[idxPos] ];
       memset((void *)PT->freqs, 0, AL->cardinality * sizeof(double));
