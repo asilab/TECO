@@ -139,13 +139,13 @@ refNModels, INF *I){
       CalcProgress(size, ++i);
       #endif
 
-
+/*
       uint8_t ss = (int) readerBuffer[idxPos];
       if(ss == 200 || ss == 205 || ss == 212 || ss == 220 || ss == 222 || ss == 240){
         ++compressed;
         continue;
         }
-
+*/
 /*
       for(x = 0 ; x < AL->nLow ; ++x){
         if((int) readerBuffer[idxPos] == (int) AL->lowAlpha[AL->toCharsLowAlpha[x]]){
