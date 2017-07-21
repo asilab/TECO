@@ -30,13 +30,25 @@ ALPHABET *CreateAlphabet(uint32_t low){
   A->alphabet        = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->mask            = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->lowAlpha        = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
-  A->toCharsLowAlpha = (uint8_t  *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint8_t));
   A->counts          = (uint64_t *) Calloc(ALPHABET_MAX_SIZE, sizeof(uint64_t));
   A->low             = low;
   A->nLow            = 0;
   A->length          = 0;
   A->cardinality     = 0;
   return A;
+  }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// IS LOWER FREQUENT ALPHABET?
+//
+int IsLowChar(ALPHABET *A, uint8_t sym){
+  uint32_t x;
+  for(x = 0 ; x < A->nLow ; ++x){
+    if(sym == (uint8_t) A->lowAlpha[x]){
+      return 1;
+      }
+    }
+  return 0;
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -135,9 +147,6 @@ void AdaptAlphabetNonFrequent(ALPHABET *A, FILE *F){
 
   if(A->nLow > 0){
 
-    for(x = 0 ; x < ALPHABET_MAX_SIZE ; ++x)
-      A->toCharsLowAlpha[x] = A->toChars[x];
-
     A->posAlpha = (POSITIONS *) Calloc(A->nLow, sizeof(POSITIONS));
     for(x = 0 ; x < A->nLow ; ++x)
       A->posAlpha[x].positions = (uint64_t *) Calloc(1, sizeof(uint64_t));
@@ -179,7 +188,6 @@ void RemoveAlphabet(ALPHABET *A){
   if(A->nLow > 0){
     uint32_t x;
     Free(A->lowAlpha);
-    Free(A->toCharsLowAlpha);
     for(x = 0 ; x < A->nLow ; ++x)
       Free(A->posAlpha[x].positions);
     Free(A->posAlpha);

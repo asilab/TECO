@@ -25,7 +25,6 @@ typedef struct {
   uint32_t   low;               // low frequent symbol threshold
   uint32_t   nLow;              // number below low
   uint8_t    *lowAlpha;         // lowChars
-  uint8_t    *toCharsLowAlpha;  // lowChars
   POSITIONS  *posAlpha;         // positions of Low chars
   int        cardinality;
   }
@@ -38,6 +37,7 @@ void       ResetAlphabet              (ALPHABET *);
 void       LoadAlphabet               (ALPHABET *, FILE *);
 void       PrintAlphabet              (ALPHABET *);
 void       PrintPositions             (ALPHABET *);
+int        IsLowChar                  (ALPHABET *, uint8_t);
 void       AdaptAlphabetNonFrequent   (ALPHABET *, FILE *);
 void       RemoveAlphabet             (ALPHABET *);
 
