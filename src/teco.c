@@ -45,8 +45,21 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   P[id].watermark        = ReadNBits(32, Reader);
   garbage                = ReadNBits(46, Reader);
   P[id].size             = ReadNBits(46, Reader);
+
+  ///////////////////////////////////////////////////////////
   P[id].low              = ReadNBits(32, Reader);
   ALPHABET *AL = CreateAlphabet(P[id].low);
+  AL->nLow               = ReadNBits(32, Reader);
+  // CREATE POS_ALPHABET LOW
+  for(x = 0 ; x < AL->nLow ; ++x){
+    AL->lowAlpha[x]      = ReadNBits( 8, Reader);
+    AL->posAlpha[x].size = ReadNBits(32, Reader);        
+    for(n = 0 ; n < AL->posAlpha[x].size ; ++n){
+      AL->posAlpha[x].positions[n] = ReadNBits(46, Reader);
+      }
+    }
+  ///////////////////////////////////////////////////////////
+
   AL->cardinality        = ReadNBits(16, Reader);
   for(x = 0 ; x < 256 ; ++x)
     AL->revMap[x] = INVALID_SYMBOL;
@@ -331,6 +344,18 @@ int32_t main(int argc, char *argv[]){
       }
     checksum[n]    = ReadNBits(46, Reader);
     P[n].size      = ReadNBits(46, Reader);
+    ///////////////////////////////////////////////////////////
+    uint32_t nLowY = ReadNBits(32, Reader);
+    uint32_t nLowX = ReadNBits(32, Reader);
+    uint32_t x;
+    for(x = 0 ; x < nLowX ; ++x){
+      garbage      = ReadNBits( 8, Reader);
+      uint32_t NLsize  = ReadNBits(32, Reader);
+      for(n = 0 ; n < NLsize ; ++n){
+        garbage    = ReadNBits(46, Reader);
+        }
+      }
+    ///////////////////////////////////////////////////////////
     P[n].low       = ReadNBits(32, Reader);
     cardinality    = ReadNBits(16, Reader);
     for(k = 0 ; k < cardinality ; ++k)
