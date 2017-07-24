@@ -58,7 +58,7 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
       AL->posAlpha[x].positions[n] = ReadNBits(46, Reader);
       }
     }
-  //PrintPositions(AL);
+  PrintPositions(AL);
   AL->cardinality        = ReadNBits(16, Reader);
   for(x = 0 ; x < 256 ; ++x)
     AL->revMap[x] = INVALID_SYMBOL;
@@ -106,6 +106,9 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
     CalcProgress(P[id].size, ++i);
 
     if((sym = GetCharFromPos(AL, i)) != -1){
+ 
+      fprintf(stderr, "%"PRIu64"\n", i);
+
       outBuffer[idxOut] = sym;
       if(++idxOut == BUFFER_SIZE){
         fwrite(outBuffer, 1, idxOut, Writter);
