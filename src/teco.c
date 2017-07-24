@@ -347,7 +347,7 @@ int32_t main(int argc, char *argv[]){
     checksum[n]    = ReadNBits(46, Reader);
     P[n].size      = ReadNBits(46, Reader);
     ///////////////////////////////////////////////////////////
-    uint32_t nLowY = ReadNBits(32, Reader);
+    P[n].low       = ReadNBits(32, Reader);
     uint32_t nLowX = ReadNBits(32, Reader);
     uint32_t x;
     for(x = 0 ; x < nLowX ; ++x){
@@ -358,7 +358,6 @@ int32_t main(int argc, char *argv[]){
         }
       }
     ///////////////////////////////////////////////////////////
-    P[n].low       = ReadNBits(32, Reader);
     cardinality    = ReadNBits(16, Reader);
     for(k = 0 ; k < cardinality ; ++k)
       garbage      = ReadNBits(8,  Reader);
