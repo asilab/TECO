@@ -141,6 +141,10 @@ refNModels, INF *I){
       #endif
 
       if(IsLowChar(AL, readerBuffer[idxPos]) == 1){
+        #ifdef ESTIMATE
+        if(P->estim != 0)
+          fprintf(IAE, "%.3g\n", log2(AL->cardinality));
+        #endif
         ++compressed;
         continue;
         }
