@@ -100,6 +100,9 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
       TARGET, P[id].model[n].edits, P[id].model[n].eDen, AL->cardinality);
     }
 
+
+fprintf(stderr, "START\n");
+
   i = 0;
   while(nSymbols--){
     CalcProgress(P[id].size, ++i);
@@ -107,7 +110,8 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
 
 //    if(i == 40320541 || i == 40320542 || i == 40320542){
     if(i == 2134616 || i == 2134617 || i == 2134618){
-      fprintf(stderr, "ENTROU: %d\n", GetCharFromPos(AL, i));
+      fprintf(stderr, "ENTROU:");
+      fprintf(stderr, "->%d\n", GetCharFromPos(AL, i));
 
       }
 
