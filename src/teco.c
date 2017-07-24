@@ -45,8 +45,6 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   P[id].watermark        = ReadNBits(32, Reader);
   garbage                = ReadNBits(46, Reader);
   P[id].size             = ReadNBits(46, Reader);
-
-  ///////////////////////////////////////////////////////////
   P[id].low              = ReadNBits(32, Reader);
   ALPHABET *AL = CreateAlphabet(P[id].low);
   AL->nLow               = ReadNBits(32, Reader);
@@ -60,10 +58,7 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
       AL->posAlpha[x].positions[n] = ReadNBits(46, Reader);
       }
     }
-
-PrintPositions(AL);
-  ///////////////////////////////////////////////////////////
-
+  //PrintPositions(AL);
   AL->cardinality        = ReadNBits(16, Reader);
   for(x = 0 ; x < 256 ; ++x)
     AL->revMap[x] = INVALID_SYMBOL;
@@ -108,9 +103,16 @@ PrintPositions(AL);
     }
 
   while(nSymbols--){
-    #ifdef PROGRESS
     CalcProgress(P[id].size, ++i);
-    #endif
+
+    if((sym = GetCharFromPos(AL, i)) != -1){
+      outBuffer[idxOut] = sym;
+      if(++idxOut == BUFFER_SIZE){
+        fwrite(outBuffer, 1, idxOut, Writter);
+        idxOut = 0;
+        }
+      continue;
+      }
 
     memset((void *)PT->freqs, 0, AL->cardinality * sizeof(double));
 
@@ -222,9 +224,7 @@ CModel **LoadReference(Parameters *P){
   CBUF      *symBuf = CreateCBuffer(BUFFER_SIZE, BGUARD);
   CModel    **cModels;
 
-  #ifdef PROGRESS
   uint64_t  i = 0;
-  #endif
 
   if(P->verbose == 1)
     fprintf(stderr, "Building reference model ...\n");
@@ -258,9 +258,7 @@ CModel **LoadReference(Parameters *P){
 
       UpdateCBuffer(symBuf);
 
-      #ifdef PROGRESS
       CalcProgress(nSymbols, ++i);
-      #endif
       }
 
   P->checksum %= CHECKSUMGF;

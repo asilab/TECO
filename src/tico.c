@@ -27,17 +27,13 @@ refNModels, INF *I){
   FILE        *Writter = Fopen(name, "w");
   uint32_t    n, k, x, cModel, totModels, idxPos;
   int32_t     idx = 0;
-  uint64_t    compressed = 0, size = 0;
+  uint64_t    i, size = 0;
   double      *cModelWeight, cModelTotalWeight = 0;
   uint8_t     *readerBuffer, sym, irSym, *pos, type = 0, 
               header = 1, line = 0, dna = 0;
   PModel      **pModel, *MX;
   FloatPModel *PT;
   CBUF        *symBuf = CreateCBuffer(BUFFER_SIZE, BGUARD);
-
-  #ifdef PROGRESS
-  uint64_t    i = 0;
-  #endif
 
   if(P->verbose)
     fprintf(stderr, "Analyzing data and creating models ...\n");
@@ -136,16 +132,13 @@ refNModels, INF *I){
   while((k = fread(readerBuffer, 1, BUFFER_SIZE, Reader)))
     for(idxPos = 0 ; idxPos < k ; ++idxPos){
 
-      #ifdef PROGRESS
       CalcProgress(size, ++i);
-      #endif
 
       if(IsLowChar(AL, readerBuffer[idxPos]) == 1){
         #ifdef ESTIMATE
         if(P->estim != 0)
           fprintf(IAE, "%.3g\n", log2(AL->cardinality));
         #endif
-        ++compressed;
         continue;
         }
 
@@ -203,8 +196,6 @@ refNModels, INF *I){
         }
 
       UpdateCBuffer(symBuf);
-
-      ++compressed;
       }
 
   finish_encode(Writter);
@@ -242,7 +233,7 @@ refNModels, INF *I){
     fprintf(stderr, "Done!                          \n");  // SPACES ARE VALID 
 
   I[id].bytes = _bytes_output;
-  I[id].size  = compressed;
+  I[id].size  = i;
   return AL-> cardinality;
   }
 

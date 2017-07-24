@@ -52,6 +52,21 @@ int IsLowChar(ALPHABET *A, uint8_t sym){
   }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+// IS LOWER FREQUENT ALPHABET?
+//
+int GetCharFromPos(ALPHABET *A, uint64_t pos){
+  uint64_t x, y;
+  for(x = 0 ; x < A->nLow ; ++x){
+    for(y = 0 ; y < A->posAlpha[y].size ; ++y){
+      if(A->posAlpha[y].positions == pos){
+        return A->lowAlpha[x];
+        }
+      }
+    }
+  return -1;
+  }
+
+// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 // RESET ALPHABET
 //
 void ResetAlphabet(ALPHABET *A){
@@ -151,7 +166,7 @@ void AdaptAlphabetNonFrequent(ALPHABET *A, FILE *F){
     for(x = 0 ; x < A->nLow ; ++x)
       A->posAlpha[x].positions = (uint64_t *) Calloc(1, sizeof(uint64_t));
 
-    uint64_t idx = 0;
+    uint64_t idx = 1;
     buffer = (uint8_t *) Calloc(BUFFER_SIZE, sizeof(uint8_t));
     while((k = fread(buffer, 1, BUFFER_SIZE, F)))
       for(x = 0 ; x < k ; ++x){

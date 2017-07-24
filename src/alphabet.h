@@ -38,6 +38,7 @@ void       LoadAlphabet               (ALPHABET *, FILE *);
 void       PrintAlphabet              (ALPHABET *);
 void       PrintPositions             (ALPHABET *);
 int        IsLowChar                  (ALPHABET *, uint8_t);
+int        GetCharFromPos             (ALPHABET *, uint64_t);
 void       AdaptAlphabetNonFrequent   (ALPHABET *, FILE *);
 void       RemoveAlphabet             (ALPHABET *);
 
