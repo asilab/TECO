@@ -50,10 +50,12 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   P[id].low              = ReadNBits(32, Reader);
   ALPHABET *AL = CreateAlphabet(P[id].low);
   AL->nLow               = ReadNBits(32, Reader);
+  AL->posAlpha = (POSITIONS *) Calloc(AL->nLow, sizeof(POSITIONS));
   // CREATE POS_ALPHABET LOW
   for(x = 0 ; x < AL->nLow ; ++x){
     AL->lowAlpha[x]      = ReadNBits( 8, Reader);
     AL->posAlpha[x].size = ReadNBits(32, Reader);        
+    AL->posAlpha[x].positions = (uint64_t *) Calloc(AL->posAlpha[x].size, sizeof(uint64_t));
     for(n = 0 ; n < AL->posAlpha[x].size ; ++n){
       AL->posAlpha[x].positions[n] = ReadNBits(46, Reader);
       }
