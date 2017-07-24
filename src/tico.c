@@ -113,6 +113,7 @@ refNModels, INF *I){
   // REMAP ALPHABET
   ResetAlphabet(AL);
   PrintAlphabet(AL);
+  PrintPositions(AL);
 
   WriteNBits(AL->cardinality,          16, Writter);
   for(x = 0 ; x < AL->cardinality ; ++x)
