@@ -105,11 +105,12 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   while(nSymbols--){
     CalcProgress(P[id].size, ++i);
 
-    if((sym = GetCharFromPos(AL, i)) != -1){
+    int ss;
+    if((ss = GetCharFromPos(AL, i)) != -1){
  
       fprintf(stderr, "%"PRIu64"\n", i);
 
-      outBuffer[idxOut] = sym;
+      outBuffer[idxOut] = (uint8_t) ss;
       if(++idxOut == BUFFER_SIZE){
         fwrite(outBuffer, 1, idxOut, Writter);
         idxOut = 0;
