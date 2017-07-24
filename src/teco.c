@@ -60,6 +60,8 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
       AL->posAlpha[x].positions[n] = ReadNBits(46, Reader);
       }
     }
+
+PrintPositions(AL);
   ///////////////////////////////////////////////////////////
 
   AL->cardinality        = ReadNBits(16, Reader);
