@@ -74,6 +74,8 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
     P[id].model[k].type  = ReadNBits( 1, Reader);
     }
 
+fprintf(stderr, "START1\n");
+
   PrintAlphabet(AL);
 
 fprintf(stderr, "START1\n");
