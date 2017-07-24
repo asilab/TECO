@@ -45,6 +45,7 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   P[id].size             = ReadNBits(46, Reader);
   P[id].low              = ReadNBits(32, Reader);
   ALPHABET *AL = CreateAlphabet(P[id].low);
+  AL->length   = P[id].size;
   AL->nLow               = ReadNBits(32, Reader);
   AL->posAlpha = (POSITIONS *) Calloc(AL->nLow, sizeof(POSITIONS));
   // CREATE POS_ALPHABET LOW
