@@ -57,8 +57,8 @@ int IsLowChar(ALPHABET *A, uint8_t sym){
 int GetCharFromPos(ALPHABET *A, uint64_t pos){
   uint64_t x, y;
   for(x = 0 ; x < A->nLow ; ++x){
-    for(y = 0 ; y < A->posAlpha[y].size ; ++y){
-      if(A->posAlpha[y].positions == pos){
+    for(y = 0 ; y < A->posAlpha[x].size ; ++y){
+      if(A->posAlpha[x].positions[y] == pos){
         return A->lowAlpha[x];
         }
       }
