@@ -46,25 +46,19 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   P[id].low              = ReadNBits(32, Reader);
   ALPHABET *AL = CreateAlphabet(P[id].low);
   AL->length   = P[id].size;
+
   AL->nLow               = ReadNBits(32, Reader);
-  AL->posAlpha = (POSITIONS *) Calloc(AL->nLow, sizeof(POSITIONS));
-  // CREATE POS_ALPHABET LOW
-  for(x = 0 ; x < AL->nLow ; ++x){
+  for(x = 0 ; x < AL->nLow ; ++x)
     AL->lowAlpha[x]      = ReadNBits( 8, Reader);
-    AL->posAlpha[x].size = ReadNBits(32, Reader);        
-    AL->posAlpha[x].positions = (uint64_t *) Calloc(AL->posAlpha[x].size, sizeof(uint64_t));
-    for(n = 0 ; n < AL->posAlpha[x].size ; ++n){
-      AL->posAlpha[x].positions[n] = ReadNBits(46, Reader);
-      }
-    }
   PrintPositions(AL);
   AL->cardinality        = ReadNBits(16, Reader);
   for(x = 0 ; x < 256 ; ++x)
     AL->revMap[x] = INVALID_SYMBOL;
   for(x = 0 ; x < AL->cardinality ; ++x){
-    AL->toChars[x] = ReadNBits(8, Reader);
+    AL->toChars[x]       = ReadNBits( 8, Reader);
     AL->revMap[(uint8_t) AL->toChars[x]] = x;
     }
+
   P[id].gamma            = ReadNBits(32, Reader) / 65536.0;
   P[id].nModels          = ReadNBits(16, Reader);
   for(k = 0 ; k < P[id].nModels ; ++k){
@@ -350,15 +344,10 @@ int32_t main(int argc, char *argv[]){
     P[n].size      = ReadNBits(46, Reader);
     ///////////////////////////////////////////////////////////
     P[n].low       = ReadNBits(32, Reader);
-    uint32_t nLowX = ReadNBits(32, Reader);
-    uint32_t x, y;
-    for(x = 0 ; x < nLowX ; ++x){
+    uint32_t nLow  = ReadNBits(32, Reader);
+    uint32_t x;
+    for(x = 0 ; x < nLow ; ++x)
       garbage      = ReadNBits( 8, Reader);
-      uint32_t NLsize  = ReadNBits(32, Reader);
-      for(y = 0 ; y < NLsize ; ++y){
-        garbage    = ReadNBits(46, Reader);
-        }
-      }
     ///////////////////////////////////////////////////////////
     cardinality    = ReadNBits(16, Reader);
     for(k = 0 ; k < cardinality ; ++k)
