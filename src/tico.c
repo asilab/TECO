@@ -106,7 +106,7 @@ refNModels, INF *I){
     }
 
   // REMAP ALPHABET
-  ResetAlphabet(AL);
+  // ResetAlphabet(AL);
   PrintAlphabet(AL);
 
   WriteNBits(AL->cardinality,          16, Writter);
@@ -128,7 +128,8 @@ refNModels, INF *I){
     for(idxPos = 0 ; idxPos < k ; ++idxPos){
 
       CalcProgress(size, ++i);
-
+      
+      /*
       if(IsLowChar(AL, readerBuffer[idxPos]) == 1){
         #ifdef ESTIMATE
         if(P->estim != 0)
@@ -136,6 +137,7 @@ refNModels, INF *I){
         #endif
         continue;
         }
+      */
 
       symBuf->buf[symBuf->idx] = sym = AL->revMap[ readerBuffer[idxPos] ];
       memset((void *)PT->freqs, 0, AL->cardinality * sizeof(double));
