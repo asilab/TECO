@@ -76,6 +76,8 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
 
   PrintAlphabet(AL);
 
+fprintf(stderr, "START1\n");
+
   // EXTRA MODELS DERIVED FROM EDITS
   totModels = P[id].nModels;
   for(n = 0 ; n < P[id].nModels ; ++n)
@@ -91,6 +93,8 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   outBuffer     = (uint8_t  *) Calloc(BUFFER_SIZE, sizeof(uint8_t));
   cModelWeight  = (double   *) Calloc(totModels, sizeof(double ));
 
+fprintf(stderr, "START2\n");
+
   for(n = 0 ; n < totModels ; ++n)
     cModelWeight[n] = 1.0 / totModels;
 
@@ -101,7 +105,7 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
     }
 
 
-fprintf(stderr, "START\n");
+fprintf(stderr, "START3\n");
 
   i = 0;
   while(nSymbols--){
