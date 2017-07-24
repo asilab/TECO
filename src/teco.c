@@ -104,17 +104,10 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   while(nSymbols--){
     CalcProgress(P[id].size, ++i);
 
-//    if(i == 40320541 || i == 40320542 || i == 40320542){
-    if(i == 2134616 || i == 2134617 || i == 2134618){
-      fprintf(stderr, "ENTROU:");
-      fprintf(stderr, "->%d\n", GetCharFromPos(AL, i));
-
-      }
-
     int ss;
     if((ss = GetCharFromPos(AL, i)) != -1){
       outBuffer[idxOut] = (uint8_t) ss;
-      fprintf(stderr, "ENTROU:%d\n", ss);
+      fprintf(stderr, "ENTROU:%d (%"PRIu64")\n", ss, i);
       if(++idxOut == BUFFER_SIZE){
         fwrite(outBuffer, 1, idxOut, Writter);
         idxOut = 0;
