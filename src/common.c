@@ -533,7 +533,7 @@ uint8_t CmpCheckSum(uint32_t cs, uint32_t checksum)
 
 void PrintArgs(Parameters *P)
   {
-  uint32_t n;
+  uint32_t n = 0;
 
   fprintf(stderr, "Force mode ......................... %s\n", P->force == 0 ? 
   "no" : "yes");

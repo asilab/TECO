@@ -31,9 +31,7 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   CBUF        *symBuf = CreateCBuffer(BUFFER_SIZE, BGUARD);
   PModel      **pModel, *MX;
   FloatPModel *PT;
-  #ifdef PROGRESS
   uint64_t    i = 0;
-  #endif
 
   if(P->verbose)
     fprintf(stderr, "Decompressing %"PRIu64" symbols of target %d ...\n", 
@@ -102,19 +100,22 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
       TARGET, P[id].model[n].edits, P[id].model[n].eDen, AL->cardinality);
     }
 
+  i = 0;
   while(nSymbols--){
     CalcProgress(P[id].size, ++i);
 
     int ss;
     if((ss = GetCharFromPos(AL, i)) != -1){
  
-      fprintf(stderr, "%"PRIu64"\n", i);
+      fprintf(stderr, "ENTROU: %"PRIu64"\n", i);
 
       outBuffer[idxOut] = (uint8_t) ss;
+
       if(++idxOut == BUFFER_SIZE){
         fwrite(outBuffer, 1, idxOut, Writter);
         idxOut = 0;
         }
+
       continue;
       }
 
