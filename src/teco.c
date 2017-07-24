@@ -104,6 +104,12 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   while(nSymbols--){
     CalcProgress(P[id].size, ++i);
 
+
+    if(i == 40320541 || i == 40320542 || i == 40320542){
+      fprintf(stderr, "ENTROU: %d\n", GetCharFromPos(AL, i));
+
+      }
+
     int ss;
     if((ss = GetCharFromPos(AL, i)) != -1){
  
