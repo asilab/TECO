@@ -104,10 +104,6 @@ refNModels, INF *I){
   WriteNBits(AL->nLow,                 32, Writter);
   for(x = 0 ; x < AL->nLow ; ++x){
     WriteNBits(AL->lowAlpha[x],         8, Writter);
-    WriteNBits(AL->posAlpha[x].size,   32, Writter);
-    for(n = 0 ; n < AL->posAlpha[x].size ; ++n){
-      WriteNBits(AL->posAlpha[x].positions[n], 46, Writter);      
-      }
     }
 
   // REMAP ALPHABET

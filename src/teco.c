@@ -46,11 +46,9 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   P[id].low              = ReadNBits(32, Reader);
   ALPHABET *AL = CreateAlphabet(P[id].low);
   AL->length   = P[id].size;
-
   AL->nLow               = ReadNBits(32, Reader);
   for(x = 0 ; x < AL->nLow ; ++x)
     AL->lowAlpha[x]      = ReadNBits( 8, Reader);
-  PrintPositions(AL);
   AL->cardinality        = ReadNBits(16, Reader);
   for(x = 0 ; x < 256 ; ++x)
     AL->revMap[x] = INVALID_SYMBOL;
@@ -58,7 +56,6 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
     AL->toChars[x]       = ReadNBits( 8, Reader);
     AL->revMap[(uint8_t) AL->toChars[x]] = x;
     }
-
   P[id].gamma            = ReadNBits(32, Reader) / 65536.0;
   P[id].nModels          = ReadNBits(16, Reader);
   for(k = 0 ; k < P[id].nModels ; ++k){
@@ -98,17 +95,6 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   i = 0;
   while(nSymbols--){
     CalcProgress(P[id].size, ++i);
-
-    int ss;
-    if((ss = GetCharFromPos(AL, i)) != -1){
-      outBuffer[idxOut] = (uint8_t) ss;
-      fprintf(stderr, "ENTROU:%d (%"PRIu64")\n", ss, i);
-      if(++idxOut == BUFFER_SIZE){
-        fwrite(outBuffer, 1, idxOut, Writter);
-        idxOut = 0;
-        }
-      continue;
-      }
 
     memset((void *)PT->freqs, 0, AL->cardinality * sizeof(double));
 
