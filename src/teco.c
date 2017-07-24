@@ -371,11 +371,11 @@ int32_t main(int argc, char *argv[]){
     ///////////////////////////////////////////////////////////
     P[n].low       = ReadNBits(32, Reader);
     uint32_t nLowX = ReadNBits(32, Reader);
-    uint32_t x;
+    uint32_t x, y;
     for(x = 0 ; x < nLowX ; ++x){
       garbage      = ReadNBits( 8, Reader);
       uint32_t NLsize  = ReadNBits(32, Reader);
-      for(n = 0 ; n < NLsize ; ++n){
+      for(y = 0 ; y < NLsize ; ++y){
         garbage    = ReadNBits(46, Reader);
         }
       }
