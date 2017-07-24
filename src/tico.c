@@ -57,7 +57,6 @@ refNModels, INF *I){
 
   // ADAPT ALPHABET FOR NON FREQUENT SYMBOLS
   AdaptAlphabetNonFrequent(AL, Reader);
-  //PrintPositions(AL);
   
   // EXTRA MODELS DERIVED FROM EDITS
   totModels = P->nModels;
@@ -109,7 +108,6 @@ refNModels, INF *I){
   // REMAP ALPHABET
   ResetAlphabet(AL);
   PrintAlphabet(AL);
-  PrintPositions(AL);
 
   WriteNBits(AL->cardinality,          16, Writter);
   for(x = 0 ; x < AL->cardinality ; ++x)
