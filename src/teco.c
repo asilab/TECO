@@ -74,11 +74,7 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
     P[id].model[k].type  = ReadNBits( 1, Reader);
     }
 
-fprintf(stderr, "START1\n");
-
   PrintAlphabet(AL);
-
-fprintf(stderr, "START1\n");
 
   // EXTRA MODELS DERIVED FROM EDITS
   totModels = P[id].nModels;
@@ -95,8 +91,6 @@ fprintf(stderr, "START1\n");
   outBuffer     = (uint8_t  *) Calloc(BUFFER_SIZE, sizeof(uint8_t));
   cModelWeight  = (double   *) Calloc(totModels, sizeof(double ));
 
-fprintf(stderr, "START2\n");
-
   for(n = 0 ; n < totModels ; ++n)
     cModelWeight[n] = 1.0 / totModels;
 
@@ -106,33 +100,25 @@ fprintf(stderr, "START2\n");
       TARGET, P[id].model[n].edits, P[id].model[n].eDen, AL->cardinality);
     }
 
-
-fprintf(stderr, "START3\n");
-
   i = 0;
   while(nSymbols--){
     CalcProgress(P[id].size, ++i);
 
-
+/*
 //    if(i == 40320541 || i == 40320542 || i == 40320542){
     if(i == 2134616 || i == 2134617 || i == 2134618){
       fprintf(stderr, "ENTROU:");
       fprintf(stderr, "->%d\n", GetCharFromPos(AL, i));
 
       }
-
+*/
     int ss;
     if((ss = GetCharFromPos(AL, i)) != -1){
- 
-      fprintf(stderr, "ENTROU: %"PRIu64"\n", i);
-
       outBuffer[idxOut] = (uint8_t) ss;
-
       if(++idxOut == BUFFER_SIZE){
         fwrite(outBuffer, 1, idxOut, Writter);
         idxOut = 0;
         }
-
       continue;
       }
 
