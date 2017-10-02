@@ -106,8 +106,8 @@ refNModels, INF *I){
     }
 
   // REMAP ALPHABET
-  // ResetAlphabet(AL);
-  PrintAlphabet(AL);
+  //// ResetAlphabet(AL);
+  // PrintAlphabet(AL);
 
   WriteNBits(AL->cardinality,          16, Writter);
   for(x = 0 ; x < AL->cardinality ; ++x)
@@ -124,6 +124,7 @@ refNModels, INF *I){
 
   I[id].header = _bytes_output;
 
+  i = 0;
   while((k = fread(readerBuffer, 1, BUFFER_SIZE, Reader)))
     for(idxPos = 0 ; idxPos < k ; ++idxPos){
 
@@ -224,6 +225,7 @@ refNModels, INF *I){
   Free(readerBuffer);
   RemoveCBuffer(symBuf);
   RemoveAlphabet(AL);
+  int card = AL->cardinality;
   fclose(Reader);
 
   if(P->verbose == 1)
@@ -231,7 +233,7 @@ refNModels, INF *I){
 
   I[id].bytes = _bytes_output;
   I[id].size  = i;
-  return AL-> cardinality;
+  return card;
   }
 
 
@@ -422,8 +424,9 @@ int32_t main(int argc, char *argv[]){
   totalSize   = 0;
   totalBytes  = 0;
   headerBytes = 0;
+  cardinality = 1;
   for(n = 0 ; n < P->nTar ; ++n){
-    cardinality = Compress(P, refModels, n, refNModels, I);
+    cardinality  = Compress(P, refModels, n, refNModels, I);
     totalSize   += I[n].size;
     totalBytes  += I[n].bytes;
     headerBytes += I[n].header;
@@ -434,6 +437,7 @@ int32_t main(int argc, char *argv[]){
       fprintf(stdout, "File %d compressed bytes: %"PRIu64" (", n+1, (uint64_t) 
       I[n].bytes);
       PrintHRBytes(I[n].bytes);
+
       fprintf(stdout, ") , Normalized Dissimilarity Rate: %.6g\n", 
       (8.0*I[n].bytes)/(log2(cardinality)*I[n].size));
       }
