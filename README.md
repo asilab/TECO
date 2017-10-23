@@ -2,7 +2,7 @@
 
 INSTALLATION:
 <pre>
-sudo apt-get install cmake git
+#sudo apt-get install cmake git
 git clone https://github.com/pratas/TECO.git
 cd teco/src/
 cmake .
