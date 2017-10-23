@@ -9,4 +9,6 @@ cmake .
 make
 </pre>
 
+Note: if you use reference-based compression make sure the files have the same cardinality.
+
 
