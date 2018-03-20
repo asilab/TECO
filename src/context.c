@@ -70,9 +70,8 @@ static void InitArray(CModel *M){
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-static void InsertKey(HashTable *H, U32 hi, U64 key, U8 s){
-  H->entries[hi] = (Entry *) Realloc(H->entries[hi], (H->entrySize[hi] + 1) * 
-  sizeof(Entry), sizeof(Entry));
+static void InsertKey(HashTable *H, U32 hi, U64 key, U32 s){
+  H->entries[hi] = (Entry *) Realloc(H->entries[hi], (H->entrySize[hi] + 1) * sizeof(Entry), sizeof(Entry));
   H->entries[hi][H->entrySize[hi]].counters = (HCC *) Calloc(s, sizeof(HCC));
   H->entries[hi][H->entrySize[hi]].key = key;
   H->entrySize[hi]++;
@@ -127,7 +126,6 @@ void UpdateCModelCounter(CModel *M, U32 sym, U64 im){
             M->hTable.entries[hIndex][n].counters[s] /= 2;
         return;
         }
-
     InsertKey(&M->hTable, hIndex, idx, M->nSym);
     M->hTable.entries[hIndex][n].counters[sym]++;
     }
@@ -146,7 +144,7 @@ CModel *CreateCModel(U32 ctx, U32 aDen, U8 ref, U32 edits, U32 eDen, U32 nSym){
   CModel *M = (CModel *) Calloc(1, sizeof(CModel));
   U64    prod = 1, *mult;
   U32    n;
-
+  double tmp;
   if(ctx > MAX_HASH_CTX){
     fprintf(stderr, "Error: context size cannot be greater than %d\n", 
     MAX_HASH_CTX);
@@ -155,14 +153,16 @@ CModel *CreateCModel(U32 ctx, U32 aDen, U8 ref, U32 edits, U32 eDen, U32 nSym){
 
   M->nSym        = nSym;
   mult           = (U64 *) Calloc(ctx, sizeof(U64));
-  M->nPModels    = (U64) pow(M->nSym, ctx);
+  tmp            = pow(M->nSym, ctx);
+  M->nPModels    = (U64) tmp;
   M->ctx         = ctx;
   M->alphaDen    = aDen;
   M->edits       = edits;
   M->pModelIdx   = 0;
   M->ref         = ref == 0 ? 0 : 1;
 
-  if((ULL)(M->nPModels) * M->nSym * sizeof(ACC) >> 20 > MAX_ARRAY_MEMORY){
+
+  if((ULL)(M->nPModels) * M->nSym * sizeof(ACC) >> 20 > MAX_ARRAY_MEMORY || tmp > UINT64_MAX ){
     M->mode     = HASH_TABLE_MODE;
     M->maxCount = DEFAULT_MAX_COUNT >> 8;
     M->hTable.size = HASH_SIZE;
