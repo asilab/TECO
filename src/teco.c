@@ -169,21 +169,25 @@ void Decompress(Parameters *P, CModel **cModels, uint8_t id){
   doneinputtingbits();
 
   fclose(Writter);
-  Free(MX);
   Free(name);
   Free(cModelWeight);
   for(n = 0 ; n < P[id].nModels ; ++n){
-    if(P[id].model[n].type == REFERENCE)
+    if(P[id].model[n].type == REFERENCE) {
       ResetCModelIdx(cModels[n]);
+      FreeCModel(cModels[n]);
+    }
     else
       FreeCModel(cModels[n]);
     }
+  Free(cModels);
   for(n = 0 ; n < totModels ; ++n){
     Free(pModel[n]->freqs);
     Free(pModel[n]);
     }
+  Free(MX->freqs);
+  Free(MX);
   Free(pModel);
-  Free(PT);
+  FreeFloatPModel(PT);
   Free(outBuffer);
   RemoveCBuffer(symBuf);
   RemoveAlphabet(AL);
@@ -381,7 +385,11 @@ int32_t main(int argc, char *argv[]){
     else
       Decompress(P, refModels, n);
     }
-
+  Free(checksum);
+  for(n = 0; n < nTar; n++)
+    Free(P[n].model);
+  Free(P->tar);
+  Free(P);
   stop = clock();
   fprintf(stderr, "Spent %g sec.\n", ((double)(stop-start))/CLOCKS_PER_SEC);
 
