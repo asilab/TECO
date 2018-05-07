@@ -207,25 +207,28 @@ refNModels, INF *I){
     Free(IAEName);
     }
   #endif
-
+  Free(MX->freqs);
   Free(MX);
   Free(name);
   Free(cModelWeight);
   for(n = 0 ; n < P->nModels ; ++n)
-    if(P->model[n].type == REFERENCE)
+    if(P->model[n].type == REFERENCE) {
       ResetCModelIdx(cModels[n]);
+      FreeCModel(cModels[n]);
+    }
     else
       FreeCModel(cModels[n]);
+  Free(cModels);
   for(n = 0 ; n < totModels ; ++n){
     Free(pModel[n]->freqs);
     Free(pModel[n]);
     }
   Free(pModel);
-  Free(PT);
+  FreeFloatPModel(PT);
   Free(readerBuffer);
   RemoveCBuffer(symBuf);
-  RemoveAlphabet(AL);
   int card = AL->cardinality;
+  RemoveAlphabet(AL);
   fclose(Reader);
 
   if(P->verbose == 1)
@@ -265,8 +268,8 @@ CModel **LoadReference(Parameters *P){
   cModels       = (CModel **) Malloc(P->nModels * sizeof(CModel *)); 
   for(n = 0 ; n < P->nModels ; ++n)
     if(P->model[n].type == REFERENCE)
-      cModels[n] = CreateCModel(P->model[n].ctx, P->model[n].den, REFERENCE, 
-      P->model[n].edits, P->model[n].eDen, AL->cardinality);
+      cModels[n] = CreateCModel(P->model[n].ctx, P->model[n].den, REFERENCE,
+        P->model[n].edits, P->model[n].eDen, AL->cardinality);
 
   nSymbols = NBytesInFile(Reader);
 
@@ -450,7 +453,14 @@ int32_t main(int argc, char *argv[]){
   /totalSize), (8.0*totalBytes)/(log2(cardinality)*totalSize));  
   stop = clock();
   fprintf(stdout, "Spent %g sec.\n", ((double)(stop-start))/CLOCKS_PER_SEC);
-
+  if(P->level != 0){
+    Free(xargv[0]); //string created with strdup must be free'd
+    Free(xargv);
+  }
+  Free(P->model);
+  Free(P->tar);
+  Free(I);
+  Free(P);
   return EXIT_SUCCESS;
   }
 

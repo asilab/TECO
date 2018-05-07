@@ -56,9 +56,14 @@ void FreeCModel(CModel *M){
       }
     Free(M->hTable.entries);
     Free(M->hTable.entrySize);
+    Free(M->hTable.zeroCounters);
     }
   else // TABLE_MODE
     Free(M->array.counters);
+  if(M->edits != 0){
+    RemoveCBuffer(M->SUBS.seq);
+    Free(M->SUBS.mask);
+  }
   Free(M);
   }
 
@@ -324,5 +329,10 @@ void ComputeWeightedFreqs(double w, PModel *P, FloatPModel *PT, uint32_t nSym){
 double PModelSymbolNats(PModel *P, U32 s){
   return log((double) P->sum / P->freqs[s]);
   }
+
+void FreeFloatPModel(FloatPModel * P) {
+  Free(P->freqs);
+  Free(P);
+}
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -

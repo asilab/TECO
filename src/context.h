@@ -94,6 +94,7 @@ void            GetPModelIdx         (U8 *, CModel *);
 uint64_t        GetPModelIdxCorr     (U8 *, CModel *, uint64_t);
 void            CorrectCModelSUBS    (CModel *, PModel *, uint8_t);
 PModel          *CreatePModel        (U32);
+void            FreeFloatPModel      (FloatPModel*);
 FloatPModel     *CreateFloatPModel   (U32);
 void            ResetCModelIdx       (CModel *);
 void            UpdateCModelCounter  (CModel *, U32, U64);
